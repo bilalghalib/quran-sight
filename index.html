@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Quranic Text Spiral Visualization</title>
+    <meta charset="UTF-8" />
+    <meta name="author" content="Bilal Ghalib" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="script.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="800" height="800"></canvas>
+    <div class="controls">
+      <div>
+        <label for="spiralType">Spiral Type:</label>
+        <select id="spiralType" class="spiral-type">
+          <!-- New three options -->
+          <option value="fermat">fermat</option>
+          <option value="spheres">Spheres</option>
+          <option value="fibonacci">fibonacci</option>
+          <!-- --------------- -->
+          <option value="logarithmic">Logarithmic</option>
+          <option value="archimedean">Archimedean</option>
+          <option value="goldenMean">Golden Mean</option>
+        </select>
+      </div>
+      <div>
+        <label for="fontSize">Font Size:</label>
+        <input
+          class="font-size"
+          type="range"
+          id="fontSize"
+          min="1"
+          max="20"
+          step="1"
+          value="10"
+        />
+      </div>
+      <div>
+        <label for="spiralDensity">Spiral Density:</label>
+        <input
+          class="spiral-density"
+          type="range"
+          id="spiralDensity"
+          min="1"
+          max="20"
+          step="1"
+          value="5"
+        />
+      </div>
+      <div>
+        <label for="highlightWord">Highlight Word:</label>
+        <input
+          type="text"
+          class="highlight-word"
+          id="highlightWord"
+          value="اللَّهِ"
+        />
+        <button id="saveButton" class="save-to">Save as Image</button>
+      </div>
+    </div>
+  </body>
+</html>
