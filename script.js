@@ -24,9 +24,9 @@ class App {
   _drawVisualization() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const spiralType = spiralTypeEl.value;
-    const fontSize = +fontSizeEl.value;
     const spiralDensity = +spiralDensityEl.value;
     const highlightWord = highlightWordEl.value;
+    let fontSize = +fontSizeEl.value;
 
     ctx.font = fontSize + "px Arial";
     ctx.fillStyle = "black";
@@ -92,7 +92,48 @@ class App {
         y = centerY + radius * Math.sin(petaAngle) * Math.cos(angleF) * angle;
 
         radius = growthFactor * Math.sqrt(i);
+      } else if (spiralType === "rose") {
+        if (fontSize > 5) fontSize = 5;
+        if (radius < 50) radius = 50
+        const growthFactor = 0.0006;
+        const angleIncrement = 2 / 1000;
+        const petalCount = 6;
+
+        x = centerX + Math.cos(petalCount * angle * Math.PI) * Math.cos(angle * Math.PI) * radius;
+        y = centerY + Math.cos(petalCount * angle * Math.PI) * Math.sin(angle * Math.PI) * radius;
+        
+        angle += angleIncrement;
+        radius += growthFactor;
+      } else if (spiralType === "epitrochoid") {
+        if (fontSize > 5) fontSize = 5;
+        if (radius < 30) radius = 30;
+        const p1 = 0.8;
+        const p2 = 3;
+        const d = 2.5;
+        const angleIncrement = 10 / 1000;
+        const growthFactor = 0.00005;
+
+        x = centerX + (((p1 + p2) * Math.cos(angle)) - (d * Math.cos((p1 + p2) / p1 * angle))) * radius;
+        y = centerY + (((p1 + p2) * Math.sin(angle)) - (d * Math.sin((p1 + p2) / p1 * angle))) * radius;
+        
+        angle += angleIncrement;
+        radius += growthFactor;
+      } else if (spiralType === "hypotrochoid") {
+        if (fontSize > 5) fontSize = 5;
+        if (radius < 30) radius = 30;
+        const p1 = 0.8;
+        const p2 = 3;
+        const d = 2.5;
+        const angleIncrement = 10 / 1000;
+        const growthFactor = 0.00005;
+
+        x = centerX + (((p1 + p2) * Math.cos(angle)) + (d * Math.cos((p1 + p2) / p1 * angle))) * radius;
+        y = centerY + (((p1 + p2) * Math.sin(angle)) - (d * Math.sin((p1 + p2) / p1 * angle))) * radius;
+        
+        angle += angleIncrement;
+        radius += growthFactor;
       }
+      
       if (
         highlightWord &&
         quranText.slice(i, i + highlightWord.length) === highlightWord
