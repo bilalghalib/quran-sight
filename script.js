@@ -9,10 +9,30 @@ const highlightWordEl = document.querySelector(".highlight-word");
 let quranText = "";
 
 class App {
+
+  roseMinimumRadius = 50;
+  roseGrowthFactor = 0.0006;
+  roseAngleStep = 0.0006;
+  rosePetalCount = 6;
+
+  epitrochoidMinimumRadius = 50;
+  epitrochoidGrowthFactor = 0.006;
+  epitrochoidAngleStep = 0.006;
+  epitrochoidInnerRadii = 0.8;
+  epitrochoidOuterRadii = 3;
+  epitrochoidDistance = 2.5;
+
+  hypotrochoidMinimumRadius = 50;
+  hypotrochoidGrowthFactor = 0.006;
+  hypotrochoidAngleStep = 0.006;
+  hypotrochoidInnerRadii = 0.8;
+  hypotrochoidOuterRadii = 3;
+  hypotrochoidDistance = 2.5;
+
   constructor() {
     this._quranFetching();
-    btnSave.addEventListener("click", this._saveImgToLocal);
-    controlsContainer.addEventListener("change", this._drawVisualization);
+    btnSave.addEventListener("click", this._saveImgToLocal.bind(this));
+    controlsContainer.addEventListener("change", this._updateControlAndVisual.bind(this));
   }
 
   _saveImgToLocal() {
@@ -21,12 +41,50 @@ class App {
     link.download = "quran_spiral.png";
     link.click();
   }
+
+  _updateControlAndVisual() {
+    const spiralType = spiralTypeEl.value;
+
+    const subControls = document.getElementsByClassName(".sub-controls")
+    for (let ctrl of subControls) ctrl.style.display = 'none'
+
+    if (spiralType === "rose") {
+      document.querySelector(".rose-controls").style.display = 'flex'
+      this.roseMinimumRadius = +document.querySelector(".roseMinimumRadius").value;
+      this.roseGrowthFactor = +document.querySelector(".roseGrowthFactor").value;
+      this.roseAngleStep = +document.querySelector(".roseAngleStep").value;
+      this.rosePetalCount = +document.querySelector(".rosePetalCount").value;
+    } else if (spiralType === "epitrochoid") {
+      document.querySelector(".epitrochoid-controls").style.display = 'flex'
+      this.epitrochoidMinimumRadius = +document.querySelector(".epitrochoidMinimumRadius").value;
+      this.epitrochoidGrowthFactor = +document.querySelector(".epitrochoidGrowthFactor").value;
+      this.epitrochoidAngleStep = +document.querySelector(".epitrochoidAngleStep").value;
+      this.epitrochoidInnerRadii = +document.querySelector(".epitrochoidInnerRadii").value;
+      this.epitrochoidOuterRadii = +document.querySelector(".epitrochoidOuterRadii").value;
+      this.epitrochoidDistance = +document.querySelector(".epitrochoidDistance").value;
+    } else if (spiralType === "hypotrochoid") {
+      document.querySelector(".hypotrochoid-controls").style.display = 'flex'
+      this.hypotrochoidMinimumRadius = +document.querySelector(".hypotrochoidMinimumRadius").value;
+      this.hypotrochoidGrowthFactor = +document.querySelector(".hypotrochoidGrowthFactor").value;
+      this.hypotrochoidAngleStep = +document.querySelector(".hypotrochoidAngleStep").value;
+      this.hypotrochoidInnerRadii = +document.querySelector(".hypotrochoidInnerRadii").value;
+      this.hypotrochoidOuterRadii = +document.querySelector(".hypotrochoidOuterRadii").value;
+      this.hypotrochoidDistance = +document.querySelector(".hypotrochoidDistance").value;
+    }
+
+    this._drawVisualization()
+  }
+
   _drawVisualization() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const spiralType = spiralTypeEl.value;
     const spiralDensity = +spiralDensityEl.value;
-    const highlightWord = highlightWordEl.value;
+    const highlightWord = this._safeKeywordString(highlightWordEl.value);
     let fontSize = +fontSizeEl.value;
+    
+    //remove copyright block from quran text
+    let quranLines = quranText.split('\n').slice(0, 6237)
+    quranText = quranLines.join('\n')
 
     ctx.font = fontSize + "px Arial";
     ctx.fillStyle = "black";
@@ -39,8 +97,12 @@ class App {
     let angle = 0;
     const angleIncrement = 0.1;
     let x, y, char;
-    for (let i = 0; i < quranText.length; i++) {
-      char = quranText[i];
+    let i = 0
+    while (i < quranText.length) {
+
+      let nextSpacePos = this._searchWordPosition(/\s/, quranText, i)
+
+      char = quranText.slice(i, nextSpacePos);
 
       if (spiralType === "logarithmic") {
         x = centerX + Math.cos(angle) * radius;
@@ -93,61 +155,58 @@ class App {
 
         radius = growthFactor * Math.sqrt(i);
       } else if (spiralType === "rose") {
-        if (fontSize > 5) fontSize = 5;
-        if (radius < 50) radius = 50
-        const growthFactor = 0.0006;
-        const angleIncrement = 2 / 1000;
-        const petalCount = 6;
+        if (radius < this.roseMinimumRadius) radius = this.roseMinimumRadius
 
-        x = centerX + Math.cos(petalCount * angle * Math.PI) * Math.cos(angle * Math.PI) * radius;
-        y = centerY + Math.cos(petalCount * angle * Math.PI) * Math.sin(angle * Math.PI) * radius;
+        x = centerX + Math.cos(this.rosePetalCount * angle * Math.PI) * Math.cos(angle * Math.PI) * radius;
+        y = centerY + Math.cos(this.rosePetalCount * angle * Math.PI) * Math.sin(angle * Math.PI) * radius;
         
-        angle += angleIncrement;
-        radius += growthFactor;
+        angle += this.roseAngleStep;
+        radius += this.roseGrowthFactor;
       } else if (spiralType === "epitrochoid") {
-        if (fontSize > 5) fontSize = 5;
-        if (radius < 30) radius = 30;
-        const p1 = 0.8;
-        const p2 = 3;
-        const d = 2.5;
-        const angleIncrement = 10 / 1000;
-        const growthFactor = 0.00005;
+        if (radius < this.epitrochoidMinimumRadius) radius = this.epitrochoidMinimumRadius;
 
-        x = centerX + (((p1 + p2) * Math.cos(angle)) - (d * Math.cos((p1 + p2) / p1 * angle))) * radius;
-        y = centerY + (((p1 + p2) * Math.sin(angle)) - (d * Math.sin((p1 + p2) / p1 * angle))) * radius;
+        x = centerX + (((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) * Math.cos(angle)) - (this.epitrochoidDistance * Math.cos((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) / this.epitrochoidInnerRadii * angle))) * radius;
+        y = centerY + (((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) * Math.sin(angle)) - (this.epitrochoidDistance * Math.sin((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) / this.epitrochoidInnerRadii * angle))) * radius;
         
-        angle += angleIncrement;
-        radius += growthFactor;
+        angle += this.epitrochoidAngleStep;
+        radius += this.epitrochoidGrowthFactor;
       } else if (spiralType === "hypotrochoid") {
-        if (fontSize > 5) fontSize = 5;
-        if (radius < 30) radius = 30;
-        const p1 = 0.8;
-        const p2 = 3;
-        const d = 2.5;
-        const angleIncrement = 10 / 1000;
-        const growthFactor = 0.00005;
+        if (radius < this.hypotrochoidMinimumRadius) radius = this.hypotrochoidMinimumRadius;
 
-        x = centerX + (((p1 + p2) * Math.cos(angle)) + (d * Math.cos((p1 + p2) / p1 * angle))) * radius;
-        y = centerY + (((p1 + p2) * Math.sin(angle)) - (d * Math.sin((p1 + p2) / p1 * angle))) * radius;
+        x = centerX + (((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) * Math.cos(angle)) - (this.hypotrochoidDistance * Math.cos((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) / this.hypotrochoidInnerRadii * angle))) * radius;
+        y = centerY + (((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) * Math.sin(angle)) - (this.hypotrochoidDistance * Math.sin((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) / this.hypotrochoidInnerRadii * angle))) * radius;
         
-        angle += angleIncrement;
-        radius += growthFactor;
+        angle += this.hypotrochoidAngleStep;
+        radius += this.hypotrochoidGrowthFactor;
       }
       
-      if (
-        highlightWord &&
-        quranText.slice(i, i + highlightWord.length) === highlightWord
-      ) {
+      const compareChar = this._safeKeywordString(char)
+      if (highlightWord === compareChar) {
+        ctx.fillStyle = "#ff0000";
         ctx.font = "bold " + fontSize + "px Arial";
         ctx.fillText(char, x, y);
-        i += highlightWord.length - 1;
       } else {
+        ctx.fillStyle = "#000000";
         ctx.font = fontSize + "px Arial";
         ctx.fillText(char, x, y);
       }
 
       angle += angleIncrement / spiralDensity;
+
+      i += char.length + 1;
     }
+  }
+
+  _safeKeywordString(str) {
+    //remove all harakat and space from string
+    const compareStr = new RegExp(/[\u0617-\u061A\u064B-\u0652\s]/, 'ig')
+    return str.replaceAll(compareStr, '')
+  }
+
+  _searchWordPosition(regexp, haystack, startIndex) {
+    const nextSearch = haystack.substring(startIndex)
+    const nextPos = nextSearch.search(regexp) + startIndex
+    return nextPos
   }
 
   async _quranFetching() {
@@ -156,7 +215,7 @@ class App {
       const response = await fetch("quran.txt");
       const text = await response.text();
       quranText = text;
-      this._drawVisualization();
+      this._updateControlAndVisual();
     } catch (error) {
       console.error("Error loading Quranic text:", error.message);
     }
