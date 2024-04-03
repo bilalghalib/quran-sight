@@ -1,225 +1,333 @@
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const controlsContainer = document.querySelector(".controls");
-const btnSave = document.querySelector(".save-to");
-const spiralTypeEl = document.querySelector(".spiral-type");
-const fontSizeEl = document.querySelector(".font-size");
-const spiralDensityEl = document.querySelector(".spiral-density");
-const highlightWordEl = document.querySelector(".highlight-word");
-let quranText = "";
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let quranText = '';
+let currentSearchIndex = 0;
+let zoomLevel = 1;
+let fontSizeAnimationInterval;
+let spiralDensityAnimationInterval;
+let currentHighlightWord = '';
 
-class App {
+// Load the Quranic text from a plain text file
+fetch('quran.txt')
+  .then(response => response.text())
+  .then(text => {
+    quranText = text.slice(0, 10000); // Limit to 10,000 characters for testing
+    drawVisualization();
+  })
+  .catch(error => {
+    console.error('Error loading Quranic text:', error);
+  });
 
-  roseMinimumRadius = 50;
-  roseGrowthFactor = 0.0006;
-  roseAngleStep = 0.0006;
-  rosePetalCount = 6;
+function drawVisualization() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.scale(zoomLevel, zoomLevel);
 
-  epitrochoidMinimumRadius = 50;
-  epitrochoidGrowthFactor = 0.006;
-  epitrochoidAngleStep = 0.006;
-  epitrochoidInnerRadii = 0.8;
-  epitrochoidOuterRadii = 3;
-  epitrochoidDistance = 2.5;
+  const spiralType = document.getElementById('spiralType').value;
+  const fontSize = parseFloat(document.getElementById('fontSizeText').value);
+  const spiralDensity = parseFloat(document.getElementById('spiralDensityText').value);
+  const abjadColorEnabled = document.getElementById('abjadColor').checked;
+  const abjadSizeEnabled = document.getElementById('abjadSize').checked;
+  const abjadWordTotalEnabled = document.getElementById('abjadWordTotal').checked;
 
-  hypotrochoidMinimumRadius = 50;
-  hypotrochoidGrowthFactor = 0.006;
-  hypotrochoidAngleStep = 0.006;
-  hypotrochoidInnerRadii = 0.8;
-  hypotrochoidOuterRadii = 3;
-  hypotrochoidDistance = 2.5;
+  ctx.font = fontSize + 'px "Noto Naskh Arabic"';
+  ctx.fillStyle = 'black';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
 
-  constructor() {
-    this._quranFetching();
-    btnSave.addEventListener("click", this._saveImgToLocal.bind(this));
-    controlsContainer.addEventListener("change", this._updateControlAndVisual.bind(this));
-  }
+  const centerX = canvas.width / (2 * zoomLevel);
+  const centerY = canvas.height / (2 * zoomLevel);
+  let radius = 10;
+  let angle = 0;
+  const angleIncrement = 0.1;
 
-  _saveImgToLocal() {
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "quran_spiral.png";
-    link.click();
-  }
+  const words = quranText.split(/\s+/);
+  let wordIndex = 0;
 
-  _updateControlAndVisual() {
-    const spiralType = spiralTypeEl.value;
+  while (wordIndex < words.length) {
+    const word = words[wordIndex];
 
-    const subControls = document.getElementsByClassName(".sub-controls")
-    for (let ctrl of subControls) ctrl.style.display = 'none'
-
-    if (spiralType === "rose") {
-      document.querySelector(".rose-controls").style.display = 'flex'
-      this.roseMinimumRadius = +document.querySelector(".roseMinimumRadius").value;
-      this.roseGrowthFactor = +document.querySelector(".roseGrowthFactor").value;
-      this.roseAngleStep = +document.querySelector(".roseAngleStep").value;
-      this.rosePetalCount = +document.querySelector(".rosePetalCount").value;
-    } else if (spiralType === "epitrochoid") {
-      document.querySelector(".epitrochoid-controls").style.display = 'flex'
-      this.epitrochoidMinimumRadius = +document.querySelector(".epitrochoidMinimumRadius").value;
-      this.epitrochoidGrowthFactor = +document.querySelector(".epitrochoidGrowthFactor").value;
-      this.epitrochoidAngleStep = +document.querySelector(".epitrochoidAngleStep").value;
-      this.epitrochoidInnerRadii = +document.querySelector(".epitrochoidInnerRadii").value;
-      this.epitrochoidOuterRadii = +document.querySelector(".epitrochoidOuterRadii").value;
-      this.epitrochoidDistance = +document.querySelector(".epitrochoidDistance").value;
-    } else if (spiralType === "hypotrochoid") {
-      document.querySelector(".hypotrochoid-controls").style.display = 'flex'
-      this.hypotrochoidMinimumRadius = +document.querySelector(".hypotrochoidMinimumRadius").value;
-      this.hypotrochoidGrowthFactor = +document.querySelector(".hypotrochoidGrowthFactor").value;
-      this.hypotrochoidAngleStep = +document.querySelector(".hypotrochoidAngleStep").value;
-      this.hypotrochoidInnerRadii = +document.querySelector(".hypotrochoidInnerRadii").value;
-      this.hypotrochoidOuterRadii = +document.querySelector(".hypotrochoidOuterRadii").value;
-      this.hypotrochoidDistance = +document.querySelector(".hypotrochoidDistance").value;
+    let x, y;
+    if (spiralType === 'logarithmic') {
+      x = Math.cos(angle) * radius;
+      y = Math.sin(angle) * radius;
+      radius += 0.1 * word.length;
+    } else if (spiralType === 'archimedean') {
+      x = Math.cos(angle) * angle;
+      y = Math.sin(angle) * angle;
+    } else if (spiralType === 'goldenMean') {
+      const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+      x = Math.cos(angle) * Math.sqrt(angle);
+      y = Math.sin(angle) * Math.sqrt(angle);
+      angle += goldenAngle;
+    } else if (spiralType === 'fibonacci') {
+      const fibonacciAngle = Math.PI * (3 - Math.sqrt(5));
+      x = Math.cos(angle) * Math.sqrt(angle);
+      y = Math.sin(angle) * Math.sqrt(angle);
+      angle += fibonacciAngle;
+      radius += 0.1 * Math.sqrt(angle) * word.length;
     }
 
-    this._drawVisualization()
-  }
+    ctx.save();
+    ctx.translate(centerX + x, centerY + y);
+    ctx.rotate(angle + Math.PI / 2);
 
-  _drawVisualization() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const spiralType = spiralTypeEl.value;
-    const spiralDensity = +spiralDensityEl.value;
-    const highlightWord = this._safeKeywordString(highlightWordEl.value);
-    let fontSize = +fontSizeEl.value;
-    
-    //remove copyright block from quran text
-    let quranLines = quranText.split('\n').slice(0, 6237)
-    quranText = quranLines.join('\n')
-
-    ctx.font = fontSize + "px Arial";
-    ctx.fillStyle = "black";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    let radius = 10;
-    let angle = 0;
-    const angleIncrement = 0.1;
-    let x, y, char;
-    let i = 0
-    while (i < quranText.length) {
-
-      let nextSpacePos = this._searchWordPosition(/\s/, quranText, i)
-
-      char = quranText.slice(i, nextSpacePos);
-
-      if (spiralType === "logarithmic") {
-        x = centerX + Math.cos(angle) * radius;
-        y = centerY + Math.sin(angle) * radius;
-        radius += 0.1;
-      } else if (spiralType === "archimedean") {
-        x = centerX + Math.cos(angle) * angle;
-        y = centerY + Math.sin(angle) * angle;
-      } else if (spiralType === "goldenMean") {
-        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-        x = centerX + Math.cos(angle) * Math.sqrt(angle);
-        y = centerY + Math.sin(angle) * Math.sqrt(angle);
-        angle += goldenAngle;
-      } else if (spiralType === "spheres") {
-        const adjustedRadius = spiralDensity;
-
-        const layers = 7; // Number of layers of spheres
-
-        for (let layer = 0; layer < layers; layer++) {
-          const layerRadius = 8 * (layer + 2); // Increase radius for each layer
-
-          const phi = Math.acos(-1 + (2 * i + 1) / quranText.length);
-          const theta = Math.sqrt(quranText.length * Math.PI) * phi;
-
-          x = centerX + layerRadius * Math.sin(phi) * Math.cos(theta) * angle;
-          y = centerY + layerRadius * Math.sin(phi) * Math.sin(theta) * angle;
-        }
-      } else if (spiralType === "fermat") {
-        const numLoops = 20; //number of loops for the fermat's spiral
-        // Calculate the angle for the fermat's spiral
-        const angleFer = i * ((2 * Math.PI) / numLoops);
-        // Calculate the radius for the fermat's spiral
-        const raduis = Math.sqrt(angle);
-        // Calculate the cooordinates for the fermats spiral
-        x = centerX + radius * Math.cos(angleFer) * angle;
-        y = centerY + radius * Math.sin(angleFer) * angle;
-      } else if (spiralType === "fibonacci") {
-        radius = 1;
-        const growthFactor = 0.01;
-        const numLoops = 1000;
-        const angleIncrement = (2 * Math.PI) / numLoops;
-        const petalCount = 6;
-        const petaSize = 20;
-
-        const angleF = i * angleIncrement;
-        const petaAngle = angleF * petalCount;
-
-        x = centerX + radius * Math.cos(petaAngle) * Math.cos(angleF) * angle;
-        y = centerY + radius * Math.sin(petaAngle) * Math.cos(angleF) * angle;
-
-        radius = growthFactor * Math.sqrt(i);
-      } else if (spiralType === "rose") {
-        if (radius < this.roseMinimumRadius) radius = this.roseMinimumRadius
-
-        x = centerX + Math.cos(this.rosePetalCount * angle * Math.PI) * Math.cos(angle * Math.PI) * radius;
-        y = centerY + Math.cos(this.rosePetalCount * angle * Math.PI) * Math.sin(angle * Math.PI) * radius;
-        
-        angle += this.roseAngleStep;
-        radius += this.roseGrowthFactor;
-      } else if (spiralType === "epitrochoid") {
-        if (radius < this.epitrochoidMinimumRadius) radius = this.epitrochoidMinimumRadius;
-
-        x = centerX + (((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) * Math.cos(angle)) - (this.epitrochoidDistance * Math.cos((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) / this.epitrochoidInnerRadii * angle))) * radius;
-        y = centerY + (((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) * Math.sin(angle)) - (this.epitrochoidDistance * Math.sin((this.epitrochoidInnerRadii + this.epitrochoidOuterRadii) / this.epitrochoidInnerRadii * angle))) * radius;
-        
-        angle += this.epitrochoidAngleStep;
-        radius += this.epitrochoidGrowthFactor;
-      } else if (spiralType === "hypotrochoid") {
-        if (radius < this.hypotrochoidMinimumRadius) radius = this.hypotrochoidMinimumRadius;
-
-        x = centerX + (((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) * Math.cos(angle)) - (this.hypotrochoidDistance * Math.cos((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) / this.hypotrochoidInnerRadii * angle))) * radius;
-        y = centerY + (((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) * Math.sin(angle)) - (this.hypotrochoidDistance * Math.sin((this.hypotrochoidInnerRadii + this.hypotrochoidOuterRadii) / this.hypotrochoidInnerRadii * angle))) * radius;
-        
-        angle += this.hypotrochoidAngleStep;
-        radius += this.hypotrochoidGrowthFactor;
-      }
-      
-      const compareChar = this._safeKeywordString(char)
-      if (highlightWord === compareChar) {
-        ctx.fillStyle = "#ff0000";
-        ctx.font = "bold " + fontSize + "px Arial";
-        ctx.fillText(char, x, y);
+    if (word === currentHighlightWord) {
+      ctx.font = 'bold ' + (fontSize + 1) + 'px "Noto Naskh Arabic"';
+      ctx.fillStyle = 'red';
+      ctx.fillText(word, 0, 0);
+    } else {
+      const abjadValue = getAbjadValue(word, abjadWordTotalEnabled);
+      if (abjadSizeEnabled) {
+        ctx.font = (fontSize + abjadValue / 100) + 'px "Noto Naskh Arabic"';
       } else {
-        ctx.fillStyle = "#000000";
-        ctx.font = fontSize + "px Arial";
-        ctx.fillText(char, x, y);
+        ctx.font = fontSize + 'px "Noto Naskh Arabic"';
       }
-
-      angle += angleIncrement / spiralDensity;
-
-      i += char.length + 1;
+      if (abjadColorEnabled) {
+        ctx.fillStyle = getColorByAbjadValue(abjadValue);
+      } else {
+        ctx.fillStyle = 'black';
+      }
+      ctx.fillText(word, 0, 0);
     }
+
+    ctx.restore();
+
+    angle += (angleIncrement * fontSize * word.length) / (20 * spiralDensity);
+    wordIndex++;
   }
 
-  _safeKeywordString(str) {
-    //remove all harakat and space from string
-    const compareStr = new RegExp(/[\u0617-\u061A\u064B-\u0652\s]/, 'ig')
-    return str.replaceAll(compareStr, '')
-  }
+  ctx.restore();
+}
 
-  _searchWordPosition(regexp, haystack, startIndex) {
-    const nextSearch = haystack.substring(startIndex)
-    const nextPos = nextSearch.search(regexp) + startIndex
-    return nextPos
-  }
-
-  async _quranFetching() {
-    // Load the Quranic text from a plain text file
-    try {
-      const response = await fetch("quran.txt");
-      const text = await response.text();
-      quranText = text;
-      this._updateControlAndVisual();
-    } catch (error) {
-      console.error("Error loading Quranic text:", error.message);
+function getAbjadValue(word, isWordTotal) {
+  const abjadMap = {
+    'ا': 1, 'ب': 2, 'ج': 3, 'د': 4, 'ه': 5, 'و': 6, 'ز': 7, 'ح': 8, 'ط': 9,
+    'ي': 10, 'ك': 20, 'ل': 30, 'م': 40, 'ن': 50, 'س': 60, 'ع': 70, 'ف': 80,
+    'ص': 90, 'ق': 100, 'ر': 200, 'ش': 300, 'ت': 400, 'ث': 500, 'خ': 600,
+    'ذ': 700, 'ض': 800, 'ظ': 900, 'غ': 1000,
+  };
+  let value = 0;
+  if (isWordTotal) {
+    for (let i = 0; i < word.length; i++) {
+      value += abjadMap[word[i]] || 0;
     }
+  } else {
+    value = abjadMap[word[0]] || 0;
+  }
+  return value;
+}
+
+function getColorByAbjadValue(value) {
+  const hue = (value * 137.508) % 360;
+  return `hsl(${hue}, 50%, 50%)`;
+}
+
+function searchAndHighlight() {
+  const highlightWord = document.getElementById('highlightWord').value;
+  currentHighlightWord = highlightWord;
+  drawVisualization();
+}
+
+function zoomIn() {
+  zoomLevel *= 1.1;
+  drawVisualization();
+}
+
+function zoomOut() {
+  zoomLevel /= 1.1;
+  drawVisualization();
+}
+
+function saveSVG() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', canvas.width);
+  svg.setAttribute('height', canvas.height);
+  svg.setAttribute('viewBox', `0 0 ${canvas.width} ${canvas.height}`);
+
+  const spiralType = document.getElementById('spiralType').value;
+  const fontSize = parseFloat(document.getElementById('fontSizeText').value);
+  const spiralDensity = parseFloat(document.getElementById('spiralDensityText').value);
+  const abjadColorEnabled = document.getElementById('abjadColor').checked;
+  const abjadSizeEnabled = document.getElementById('abjadSize').checked;
+  const abjadWordTotalEnabled = document.getElementById('abjadWordTotal').checked;
+
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  let radius = 10;
+  let angle = 0;
+  const angleIncrement = 0.1;
+
+  const words = quranText.split(/\s+/);
+  let wordIndex = 0;
+
+  while (wordIndex < words.length) {
+    const word = words[wordIndex];
+
+    let x, y;
+    if (spiralType === 'logarithmic') {
+      x = Math.cos(angle) * radius;
+      y = Math.sin(angle) * radius;
+      radius += 0.1 * word.length;
+    } else if (spiralType === 'archimedean') {
+      x = Math.cos(angle) * angle;
+      y = Math.sin(angle) * angle;
+    } else if (spiralType === 'goldenMean') {
+      const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+      x = Math.cos(angle) * Math.sqrt(angle);
+      y = Math.sin(angle) * Math.sqrt(angle);
+      angle += goldenAngle;
+    } else if (spiralType === 'fibonacci') {
+      const fibonacciAngle = Math.PI * (3 - Math.sqrt(5));
+      x = Math.cos(angle) * Math.sqrt(angle);
+      y = Math.sin(angle) * Math.sqrt(angle);
+      angle += fibonacciAngle;
+      radius += 0.1 * Math.sqrt(angle) * word.length;
+    }
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'black');
+    path.setAttribute('stroke-width', '1');
+    path.setAttribute('transform', `translate(${centerX + x}, ${centerY + y}) rotate(${(angle + Math.PI / 2) * 180 / Math.PI})`);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('font-family', 'Noto Naskh Arabic');
+    text.setAttribute('font-size', fontSize);
+text.setAttribute('text-anchor', 'middle');
+text.setAttribute('dominant-baseline', 'middle');
+text.setAttribute('transform', 'translate(' + (centerX + x) + ', ' + (centerY + y) + ') rotate(' + ((angle + Math.PI / 2) * 180 / Math.PI) + ')');
+
+
+if (word === currentHighlightWord) {
+  text.setAttribute('font-weight', 'bold');
+  text.setAttribute('fill', 'red');
+} else {
+  const abjadValue = getAbjadValue(word, abjadWordTotalEnabled);
+  if (abjadSizeEnabled) {
+    text.setAttribute('font-size', fontSize + abjadValue / 100);
+  }
+  if (abjadColorEnabled) {
+    text.setAttribute('fill', getColorByAbjadValue(abjadValue));
+  } else {
+    text.setAttribute('fill', 'black');
   }
 }
 
-const app = new App();
+text.textContent = word;
+
+const bbox = text.getBBox();
+path.setAttribute('d', `M${bbox.x},${bbox.y}L${bbox.x + bbox.width},${bbox.y}L${bbox.x + bbox.width},${bbox.y + bbox.height}L${bbox.x},${bbox.y + bbox.height}Z`);
+
+svg.appendChild(path);
+svg.appendChild(text);
+
+angle += (angleIncrement * fontSize * word.length) / (20 * spiralDensity);
+wordIndex++;
+}
+
+const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+const url = URL.createObjectURL(blob);
+const link = document.createElement('a');
+link.href = url;
+link.download = 'quran_spiral.svg';
+link.click();
+URL.revokeObjectURL(url);
+}
+
+function animateValue(inputId, textId, startId, endId, stepId, speedId, callback) {
+const input = document.getElementById(inputId);
+const text = document.getElementById(textId);
+const start = parseFloat(document.getElementById(startId).value);
+const end = parseFloat(document.getElementById(endId).value);
+const step = parseFloat(document.getElementById(stepId).value);
+const speed = parseInt(document.getElementById(speedId).value);
+
+let currentValue = start;
+const increment = end > start ? step : -step;
+
+function updateValue() {
+currentValue += increment;
+if ((increment > 0 && currentValue > end) || (increment < 0 && currentValue < end)) {
+  currentValue = end;
+  callback();
+  reverseAnimation();
+} else {
+  input.value = currentValue.toFixed(1);
+  text.value = currentValue.toFixed(1);
+  callback();
+}
+}
+
+function reverseAnimation() {
+currentValue -= increment;
+if ((increment > 0 && currentValue < start) || (increment < 0 && currentValue > start)) {
+  currentValue = start;
+  callback();
+} else {
+  input.value = currentValue.toFixed(1);
+  text.value = currentValue.toFixed(1);
+  callback();
+}
+}
+
+return setInterval(updateValue, speed);
+}
+
+document.getElementById('fontSizeAnimationStart').addEventListener('click', function () {
+if (fontSizeAnimationInterval) {
+clearInterval(fontSizeAnimationInterval);
+}
+fontSizeAnimationInterval = animateValue('fontSize', 'fontSizeText', 'fontSizeStart', 'fontSizeEnd', 'fontSizeStep', 'fontSizeSpeed', function () {
+drawVisualization();
+});
+});
+
+document.getElementById('fontSizeAnimationStop').addEventListener('click', function () {
+clearInterval(fontSizeAnimationInterval);
+});
+
+document.getElementById('spiralDensityAnimationStart').addEventListener('click', function () {
+if (spiralDensityAnimationInterval) {
+clearInterval(spiralDensityAnimationInterval);
+}
+spiralDensityAnimationInterval = animateValue('spiralDensity', 'spiralDensityText', 'spiralDensityStart', 'spiralDensityEnd', 'spiralDensityStep', 'spiralDensitySpeed', function () {
+drawVisualization();
+});
+});
+
+document.getElementById('spiralDensityAnimationStop').addEventListener('click', function () {
+clearInterval(spiralDensityAnimationInterval);
+});
+
+document.getElementById('spiralType').addEventListener('change', drawVisualization);
+document.getElementById('fontSize').addEventListener('input', function () {
+document.getElementById('fontSizeText').value = this.value;
+drawVisualization();
+});
+document.getElementById('fontSizeText').addEventListener('input', function () {
+document.getElementById('fontSize').value = this.value;
+drawVisualization();
+});
+document.getElementById('spiralDensity').addEventListener('input', function () {
+document.getElementById('spiralDensityText').value = this.value;
+drawVisualization();
+});
+document.getElementById('spiralDensityText').addEventListener('input', function () {
+document.getElementById('spiralDensity').value = this.value;
+drawVisualization();
+});
+document.getElementById('highlightWord').addEventListener('input', drawVisualization);
+document.getElementById('searchButton').addEventListener('click', searchAndHighlight);
+document.getElementById('saveButton').addEventListener('click', saveSVG);
+document.getElementById('zoomInButton').addEventListener('click', zoomIn);
+document.getElementById('zoomOutButton').addEventListener('click', zoomOut);
+document.getElementById('abjadColor').addEventListener('change', drawVisualization);
+document.getElementById('abjadSize').addEventListener('change', drawVisualization);
+document.getElementById('abjadWordTotal').addEventListener('change', drawVisualization);
+
+document.querySelectorAll('.controls h3').forEach(function (header) {
+header.addEventListener('click', function () {
+this.parentElement.classList.toggle('active');
+});
+});

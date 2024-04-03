@@ -3,63 +3,51 @@ body {
   margin: 0;
   padding: 20px;
   background-color: #f0f0f0;
+  display: flex;
 }
-
 canvas {
-  display: block;
-  margin: 0 auto;
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 600px;
+  height: 600px;
 }
-.controls, .sub-controls {
-  margin-top: 20px;
-  text-align: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.1rem;
-  align-items: center;
+.controls {
+  margin-left: 20px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 300px;
+}
+.controls h3 {
+  margin-top: 0;
+  cursor: pointer;
+}
+.controls .drawer {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
 }
 .controls label {
-  display: inline-block;
-  margin: 10px;
+  display: block;
+  margin-bottom: 10px;
 }
-.controls input[type="text"] {
+.controls input[type="text"],
+.controls input[type="number"] {
+  width: 100%;
   padding: 5px;
-  font-size: 16px;
+  font-size: 14px;
 }
-
 .controls button {
-  padding: 10px 20px;
-  margin: 20px 0;
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
   font-size: 16px;
-  background-color: #4caf50;
+  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: box-shadow, transform 0.2s ease-in;
-}
-button:hover {
-  box-shadow: 3px 5px 9px #b9b9b9;
-  transform: translateY(-0.2rem);
-}
-
-button:active {
-  outline: none;
-  border: none;
-  transform: scale(0.95);
-}
-
-/* media queries */
-/* under 850px */
-
-@media screen and (max-width: 53.125em) {
-  body {
-    padding: 0;
-    overflow-x: hidden;
-  }
-  canvas {
-    width: 100vw;
-  }
 }
