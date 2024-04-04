@@ -19,6 +19,9 @@
         <option value="archimedean">Archimedean</option>
         <option value="goldenMean" selected>Golden Mean</option>
         <option value="fibonacci">Fibonacci</option>
+        <option value="rose">Rose</option>
+        <option value="epitrochoid">Epitrochoid</option>
+        <option value="hypotrochoid">Hypotrochoid</option>
       </select>
       <label for="fontSize">Font Size:</label>
       <input type="range" id="fontSize" min="1" max="20" step="0.5" value="1.5">
@@ -26,6 +29,34 @@
       <label for="spiralDensity">Spiral Density:</label>
       <input type="range" id="spiralDensity" min="1" max="20" step="0.5" value="52.6">
       <input type="text" id="spiralDensityText" value="52.6" size="2">
+    </div>
+    <div class="drawer subdrawer hidden" id="roseSettings">
+      <h3>Rose Spiral Settings</h3>
+      <label for="roseMinimumRadius">Minimum Radius: </label>
+      <input type="number" id="roseMinimumRadius" min="0" max="500" step="10" value="50">
+      <label for="rosePetalCount">Petal Count: </label>
+      <input type="number" id="rosePetalCount" min="1" max="10" step="1" value="4">
+      <label for="roseGrowthFactor">Growth Factor: </label>
+      <input type="number" id="roseGrowthFactor" min="0.01" max="1" step="0.01" value="0.01">
+      <label for="roseAngleStep">Angle Step: </label>
+      <input type="number" id="roseAngleStep" min="0.01" max="1" step="0.01" value="0.1">
+      <button id="roseSettingsUpdate">Update</button>
+    </div>
+    <div class="drawer subdrawer hidden" id="trochoidSettings">
+      <h3>Epitrochoid & Hypotrochoid Settings</h3>
+      <label for="trochoidMinimumRadius">Minimum Radius: </label>
+      <input type="number" id="trochoidMinimumRadius" min="0" max="500" step="10" value="0">
+      <label for="trochoidGrowthFactor">Growth Factor: </label>
+      <input type="number" id="trochoidGrowthFactor" min="0.00001" max="0.001" step="0.00001" value="0.00006">
+      <label for="trochoidAngleStep">Angle Step: </label>
+      <input type="number" id="trochoidAngleStep" min="0.01" max="1" step="0.01" value="0.1">
+      <label for="trochoidInnerRadii">Inner Radii: </label>
+      <input type="number" id="trochoidInnerRadii" min="0.1" max="1" step="0.1" value="0.8">
+      <label for="trochoidOuterRadii">Outer Radii: </label>
+      <input type="number" id="trochoidOuterRadii" min="1" max="3" step="0.01" value="2">
+      <label for="trochoidDistance">Circle Distance: </label>
+      <input type="number" id="trochoidDistance" min="3" max="10" step="1" value="3">
+      <button id="trochoidSettingsUpdate">Update</button>
     </div>
     <div class="drawer">
       <h3>Animation Settings</h3>
@@ -75,286 +106,5 @@
       <button id="zoomOutButton">Zoom Out</button>
     </div>
   </div>
- </body> </html> 
-
-
-
-
-
-
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Quranic Text Spiral Visualization</title>
-    <meta charset="UTF-8" />
-
-      <div>
-        <label for="spiralType">Spiral Type:</label>
-        <select id="spiralType" class="spiral-type">
-          <!-- New three options -->
-          <option value="fermat">fermat</option>
-          <option value="spheres">Spheres</option>
-          <option value="fibonacci">fibonacci</option>
-          <!-- --------------- -->
-          <option value="logarithmic">Logarithmic</option>
-          <option value="archimedean">Archimedean</option>
-          <option value="goldenMean">Golden Mean</option>
-          <!-- Additional options -->
-          <option value="rose">Rose</option>
-          <option value="epitrochoid" selected="selected">Epitrochoid</option>
-          <option value="hypotrochoid">Hypotrochoid</option>
-        </select>
-      </div>
-      <div>
-        <label for="fontSize">Font Size:</label>
-        <input
-          class="font-size"
-          type="range"
-          id="fontSize"
-          min="1"
-          max="20"
-          step="1"
-          value="15"
-        />
-      </div>
-      <div>
-        <label for="spiralDensity">Spiral Density:</label>
-        <input
-          class="spiral-density"
-          type="range"
-          id="spiralDensity"
-          min="1"
-          max="20"
-          step="1"
-          value="2"
-        />
-      </div>
-      <div>
-        <label for="highlightWord">Highlight Word:</label>
-        <input
-          type="text"
-          class="highlight-word"
-          id="highlightWord"
-          value="اللَّهِ"
-        />
-        <button id="saveButton" class="save-to">Save as Image</button>
-      </div>
-
-      <!-- Rose Spiral Subcontrol -->
-      <div class="rose-controls sub-controls" style="display:none;">
-        <div>
-          <label>Rose Spiral Parameters</label>
-        </div>
-        <div>
-          <label for="roseMinimumRadius">Minimum Radius:</label>
-          <input
-            class="roseMinimumRadius"
-            type="range"
-            id="roseMinimumRadius"
-            min="0"
-            max="500"
-            step="25"
-            value="50"
-          />
-        </div>
-        <div>
-          <label for="roseGrowthFactor">Growth Factor:</label>
-          <input
-            class="roseGrowthFactor"
-            type="range"
-            id="roseGrowthFactor"
-            min="0.001"
-            max="0.01"
-            step="0.001"
-            value="0.006"
-          />
-        </div>
-        <div>
-          <label for="roseAngleStep">Angle Step:</label>
-          <input
-            class="roseAngleStep"
-            type="range"
-            id="roseAngleStep"
-            min="0.001"
-            max="0.01"
-            step="0.001"
-            value="0.006"
-          />
-        </div>
-        <div>
-          <label for="rosePetalCount">Petal Count:</label>
-          <input
-            class="rosePetalCount"
-            type="range"
-            id="rosePetalCount"
-            min="1"
-            max="10"
-            step="1"
-            value="4"
-          />
-        </div>
-      </div>
-      <!-- --------------- -->
-
-      <!-- Epitrochoid Subcontrol -->
-      <div class="epitrochoid-controls sub-controls" style="display:none;">
-        <div>
-          <label>Epitrochoid Parameters</label>
-        </div>
-        <div>
-          <label for="epitrochoidMinimumRadius">Minimum Radius:</label>
-          <input
-            class="epitrochoidMinimumRadius"
-            type="range"
-            id="epitrochoidMinimumRadius"
-            min="0"
-            max="500"
-            step="25"
-            value="50"
-          />
-        </div>
-        <div>
-          <label for="epitrochoidGrowthFactor">Growth Factor:</label>
-          <input
-            class="epitrochoidGrowthFactor"
-            type="range"
-            id="epitrochoidGrowthFactor"
-            min="0.001"
-            max="0.01"
-            step="0.001"
-            value="0.006"
-          />
-        </div>
-        <div>
-          <label for="epitrochoidAngleStep">Angle Step:</label>
-          <input
-            class="epitrochoidAngleStep"
-            type="range"
-            id="epitrochoidAngleStep"
-            min="0.001"
-            max="0.01"
-            step="0.001"
-            value="0.006"
-          />
-        </div>
-        <div>
-          <label for="epitrochoidInnerRadii">Inner Radii:</label>
-          <input
-            class="epitrochoidInnerRadii"
-            type="range"
-            id="epitrochoidInnerRadii"
-            min="0.2"
-            max="2.0"
-            step="0.2"
-            value="0.8"
-          />
-        </div>
-        <div>
-          <label for="epitrochoidOuterRadii">Outer Radii:</label>
-          <input
-            class="epitrochoidOuterRadii"
-            type="range"
-            id="epitrochoidOuterRadii"
-            min="2.0"
-            max="10.0"
-            step="1"
-            value="3"
-          />
-        </div>
-        <div>
-          <label for="epitrochoidDistance">Circle Distance:</label>
-          <input
-            class="epitrochoidDistance"
-            type="range"
-            id="epitrochoidDistance"
-            min="1"
-            max="10"
-            step="0.5"
-            value="2.5"
-          />
-        </div>
-      </div>
-      <!-- --------------- -->
-
-      <!-- Hypotrochoid Subcontrol -->
-      <div class="hypotrochoid-controls sub-controls" style="display:none;">
-        <div>
-          <label>Hypotrochoid Parameters</label>
-        </div>
-        <div>
-          <label for="hypotrochoidMinimumRadius">Minimum Radius:</label>
-          <input
-            class="hypotrochoidMinimumRadius"
-            type="range"
-            id="hypotrochoidMinimumRadius"
-            min="0"
-            max="500"
-            step="25"
-            value="50"
-          />
-        </div>
-        <div>
-          <label for="hypotrochoidGrowthFactor">Growth Factor:</label>
-          <input
-            class="hypotrochoidGrowthFactor"
-            type="range"
-            id="hypotrochoidGrowthFactor"
-            min="0.001"
-            max="0.01"
-            step="0.001"
-            value="0.006"
-          />
-        </div>
-        <div>
-          <label for="hypotrochoidAngleStep">Angle Step:</label>
-          <input
-            class="hypotrochoidAngleStep"
-            type="range"
-            id="hypotrochoidAngleStep"
-            min="0.001"
-            max="0.01"
-            step="0.001"
-            value="0.006"
-          />
-        </div>
-        <div>
-          <label for="hypotrochoidInnerRadii">Inner Radii:</label>
-          <input
-            class="hypotrochoidInnerRadii"
-            type="range"
-            id="hypotrochoidInnerRadii"
-            min="0.2"
-            max="2.0"
-            step="0.2"
-            value="0.8"
-          />
-        </div>
-        <div>
-          <label for="hypotrochoidOuterRadii">Outer Radii:</label>
-          <input
-            class="hypotrochoidOuterRadii"
-            type="range"
-            id="hypotrochoidOuterRadii"
-            min="2.0"
-            max="10.0"
-            step="1"
-            value="3"
-          />
-        </div>
-        <div>
-          <label for="hypotrochoidDistance">Circle Distance:</label>
-          <input
-            class="hypotrochoidDistance"
-            type="range"
-            id="hypotrochoidDistance"
-            min="1"
-            max="10"
-            step="0.5"
-            value="2.5"
-          />
-        </div>
-      </div>
-      <!-- --------------- -->
-    </div>
-  </body>
-</html>
+ </body> 
+</html> 
