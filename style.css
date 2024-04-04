@@ -19,6 +19,8 @@ canvas {
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 300px;
+  overflow-y: scroll;
+  max-height: calc(100vh - 80px);
 }
 .controls h3 {
   margin-top: 0;
@@ -29,12 +31,17 @@ canvas {
   border-bottom: 1px solid #ccc;
   padding-bottom: 10px;
 }
+.drawer.subdrawer.hidden {
+  display: none;
+}
 .controls label {
   display: block;
+  margin-top: 10px;
   margin-bottom: 10px;
 }
 .controls input[type="text"],
-.controls input[type="number"] {
+.controls input[type="number"],
+.controls select {
   width: 100%;
   padding: 5px;
   font-size: 14px;

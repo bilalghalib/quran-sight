@@ -7,10 +7,27 @@ let fontSizeAnimationInterval;
 let spiralDensityAnimationInterval;
 let currentHighlightWord = '';
 
+
+let roseMinimumRadius = 50;
+let roseGrowthFactor = 0.01;
+let roseAngleStep = 0.1;
+let rosePetalCount = 6;
+
+let trochoidMinimumRadius = 0;
+let trochoidGrowthFactor = 0.00006;
+let trochoidAngleStep = 0.01;
+let trochoidInnerRadii = 0.8;
+let trochoidOuterRadii = 2;
+let trochoidDistance = 3;
+
 // Load the Quranic text from a plain text file
 fetch('quran.txt')
   .then(response => response.text())
   .then(text => {
+    //remove copyright block from quran text
+    let quranLines = text.split('\n').slice(0, 6236)
+    text = quranLines.join('\n')
+
     quranText = text.slice(0, 10000); // Limit to 10,000 characters for testing
     drawVisualization();
   })
@@ -66,13 +83,38 @@ function drawVisualization() {
       y = Math.sin(angle) * Math.sqrt(angle);
       angle += fibonacciAngle;
       radius += 0.1 * Math.sqrt(angle) * word.length;
+    } else if (spiralType === "rose") {
+      if (radius < roseMinimumRadius) radius = roseMinimumRadius
+
+      x = Math.cos(rosePetalCount * angle * Math.PI) * Math.cos(angle * Math.PI) * radius;
+      y = Math.cos(rosePetalCount * angle * Math.PI) * Math.sin(angle * Math.PI) * radius;
+
+      angle += roseAngleStep;
+      radius += roseGrowthFactor;
+    } else if (spiralType === "epitrochoid") {
+      if (radius < trochoidMinimumRadius) radius = trochoidMinimumRadius;
+
+      x = (((trochoidInnerRadii + trochoidOuterRadii) * Math.cos(angle)) - (trochoidDistance * Math.cos((trochoidInnerRadii + trochoidOuterRadii) / trochoidInnerRadii * angle))) * radius;
+      y = (((trochoidInnerRadii + trochoidOuterRadii) * Math.sin(angle)) - (trochoidDistance * Math.sin((trochoidInnerRadii + trochoidOuterRadii) / trochoidInnerRadii * angle))) * radius;
+
+      angle += trochoidAngleStep;
+      radius += trochoidGrowthFactor;
+    } else if (spiralType === "hypotrochoid") {
+      if (radius < trochoidMinimumRadius) radius = trochoidMinimumRadius;
+
+      x = (((trochoidInnerRadii + trochoidOuterRadii) * Math.cos(angle)) + (trochoidDistance * Math.cos((trochoidInnerRadii + trochoidOuterRadii) / trochoidInnerRadii * angle))) * radius;
+      y = (((trochoidInnerRadii + trochoidOuterRadii) * Math.sin(angle)) - (trochoidDistance * Math.sin((trochoidInnerRadii + trochoidOuterRadii) / trochoidInnerRadii * angle))) * radius;
+
+      angle += trochoidAngleStep;
+      radius += trochoidGrowthFactor;
     }
 
     ctx.save();
     ctx.translate(centerX + x, centerY + y);
     ctx.rotate(angle + Math.PI / 2);
 
-    if (word === currentHighlightWord) {
+    const searchWord = cleanupHarakat(word)
+    if (searchWord === currentHighlightWord) {
       ctx.font = 'bold ' + (fontSize + 1) + 'px "Noto Naskh Arabic"';
       ctx.fillStyle = 'red';
       ctx.fillText(word, 0, 0);
@@ -123,9 +165,33 @@ function getColorByAbjadValue(value) {
   return `hsl(${hue}, 50%, 50%)`;
 }
 
+function cleanupHarakat(str) {
+  //remove all harakat and space from string
+  const compareStr = new RegExp(/[\u0617-\u061A\u064B-\u0652\s]/, 'ig')
+  return str.replaceAll(compareStr, '')
+}
+
+function updateRoseSettings(e){
+  roseMinimumRadius = +document.getElementById('roseMinimumRadius').value;
+  rosePetalCount = +document.getElementById('rosePetalCount').value;
+  roseGrowthFactor = +document.getElementById('roseGrowthFactor').value;
+  roseAngleStep = +document.getElementById('roseAngleStep').value;
+  drawVisualization();
+}
+
+function updateTrochoidSettings(e){
+  trochoidMinimumRadius = +document.getElementById('trochoidMinimumRadius').value;
+  trochoidGrowthFactor = +document.getElementById('trochoidGrowthFactor').value;
+  trochoidAngleStep = +document.getElementById('trochoidAngleStep').value;
+  trochoidInnerRadii = +document.getElementById('trochoidInnerRadii').value;
+  trochoidOuterRadii = +document.getElementById('trochoidOuterRadii').value;
+  trochoidDistance = +document.getElementById('trochoidDistance').value;
+  drawVisualization();
+}
+
 function searchAndHighlight() {
   const highlightWord = document.getElementById('highlightWord').value;
-  currentHighlightWord = highlightWord;
+  currentHighlightWord = cleanupHarakat(highlightWord);
   drawVisualization();
 }
 
@@ -194,128 +260,138 @@ function saveSVG() {
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('font-family', 'Noto Naskh Arabic');
     text.setAttribute('font-size', fontSize);
-text.setAttribute('text-anchor', 'middle');
-text.setAttribute('dominant-baseline', 'middle');
-text.setAttribute('transform', 'translate(' + (centerX + x) + ', ' + (centerY + y) + ') rotate(' + ((angle + Math.PI / 2) * 180 / Math.PI) + ')');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('transform', 'translate(' + (centerX + x) + ', ' + (centerY + y) + ') rotate(' + ((angle + Math.PI / 2) * 180 / Math.PI) + ')');
 
 
-if (word === currentHighlightWord) {
-  text.setAttribute('font-weight', 'bold');
-  text.setAttribute('fill', 'red');
-} else {
-  const abjadValue = getAbjadValue(word, abjadWordTotalEnabled);
-  if (abjadSizeEnabled) {
-    text.setAttribute('font-size', fontSize + abjadValue / 100);
+    if (word === currentHighlightWord) {
+      text.setAttribute('font-weight', 'bold');
+      text.setAttribute('fill', 'red');
+    } else {
+      const abjadValue = getAbjadValue(word, abjadWordTotalEnabled);
+      if (abjadSizeEnabled) {
+        text.setAttribute('font-size', fontSize + abjadValue / 100);
+      }
+      if (abjadColorEnabled) {
+        text.setAttribute('fill', getColorByAbjadValue(abjadValue));
+      } else {
+        text.setAttribute('fill', 'black');
+      }
+    }
+
+    text.textContent = word;
+
+    const bbox = text.getBBox();
+    path.setAttribute('d', `M${bbox.x},${bbox.y}L${bbox.x + bbox.width},${bbox.y}L${bbox.x + bbox.width},${bbox.y + bbox.height}L${bbox.x},${bbox.y + bbox.height}Z`);
+
+    svg.appendChild(path);
+    svg.appendChild(text);
+
+    angle += (angleIncrement * fontSize * word.length) / (20 * spiralDensity);
+    wordIndex++;
   }
-  if (abjadColorEnabled) {
-    text.setAttribute('fill', getColorByAbjadValue(abjadValue));
-  } else {
-    text.setAttribute('fill', 'black');
-  }
-}
 
-text.textContent = word;
-
-const bbox = text.getBBox();
-path.setAttribute('d', `M${bbox.x},${bbox.y}L${bbox.x + bbox.width},${bbox.y}L${bbox.x + bbox.width},${bbox.y + bbox.height}L${bbox.x},${bbox.y + bbox.height}Z`);
-
-svg.appendChild(path);
-svg.appendChild(text);
-
-angle += (angleIncrement * fontSize * word.length) / (20 * spiralDensity);
-wordIndex++;
-}
-
-const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
-const url = URL.createObjectURL(blob);
-const link = document.createElement('a');
-link.href = url;
-link.download = 'quran_spiral.svg';
-link.click();
-URL.revokeObjectURL(url);
+  const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'quran_spiral.svg';
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function animateValue(inputId, textId, startId, endId, stepId, speedId, callback) {
-const input = document.getElementById(inputId);
-const text = document.getElementById(textId);
-const start = parseFloat(document.getElementById(startId).value);
-const end = parseFloat(document.getElementById(endId).value);
-const step = parseFloat(document.getElementById(stepId).value);
-const speed = parseInt(document.getElementById(speedId).value);
+  const input = document.getElementById(inputId);
+  const text = document.getElementById(textId);
+  const start = parseFloat(document.getElementById(startId).value);
+  const end = parseFloat(document.getElementById(endId).value);
+  const step = parseFloat(document.getElementById(stepId).value);
+  const speed = parseInt(document.getElementById(speedId).value);
 
-let currentValue = start;
-const increment = end > start ? step : -step;
+  let currentValue = start;
+  const increment = end > start ? step : -step;
 
-function updateValue() {
-currentValue += increment;
-if ((increment > 0 && currentValue > end) || (increment < 0 && currentValue < end)) {
-  currentValue = end;
-  callback();
-  reverseAnimation();
-} else {
-  input.value = currentValue.toFixed(1);
-  text.value = currentValue.toFixed(1);
-  callback();
-}
-}
+  function updateValue() {
+    currentValue += increment;
+    if ((increment > 0 && currentValue > end) || (increment < 0 && currentValue < end)) {
+      currentValue = end;
+      callback();
+      reverseAnimation();
+    } else {
+      input.value = currentValue.toFixed(1);
+      text.value = currentValue.toFixed(1);
+      callback();
+    }
+  }
 
-function reverseAnimation() {
-currentValue -= increment;
-if ((increment > 0 && currentValue < start) || (increment < 0 && currentValue > start)) {
-  currentValue = start;
-  callback();
-} else {
-  input.value = currentValue.toFixed(1);
-  text.value = currentValue.toFixed(1);
-  callback();
-}
-}
+  function reverseAnimation() {
+    currentValue -= increment;
+    if ((increment > 0 && currentValue < start) || (increment < 0 && currentValue > start)) {
+      currentValue = start;
+      callback();
+    } else {
+      input.value = currentValue.toFixed(1);
+      text.value = currentValue.toFixed(1);
+      callback();
+    }
+  }
 
-return setInterval(updateValue, speed);
+  return setInterval(updateValue, speed);
 }
 
 document.getElementById('fontSizeAnimationStart').addEventListener('click', function () {
-if (fontSizeAnimationInterval) {
-clearInterval(fontSizeAnimationInterval);
-}
-fontSizeAnimationInterval = animateValue('fontSize', 'fontSizeText', 'fontSizeStart', 'fontSizeEnd', 'fontSizeStep', 'fontSizeSpeed', function () {
-drawVisualization();
-});
+  if (fontSizeAnimationInterval) {
+    clearInterval(fontSizeAnimationInterval);
+  }
+  fontSizeAnimationInterval = animateValue('fontSize', 'fontSizeText', 'fontSizeStart', 'fontSizeEnd', 'fontSizeStep', 'fontSizeSpeed', function () {
+    drawVisualization();
+  });
 });
 
 document.getElementById('fontSizeAnimationStop').addEventListener('click', function () {
-clearInterval(fontSizeAnimationInterval);
+  clearInterval(fontSizeAnimationInterval);
 });
 
 document.getElementById('spiralDensityAnimationStart').addEventListener('click', function () {
-if (spiralDensityAnimationInterval) {
-clearInterval(spiralDensityAnimationInterval);
-}
-spiralDensityAnimationInterval = animateValue('spiralDensity', 'spiralDensityText', 'spiralDensityStart', 'spiralDensityEnd', 'spiralDensityStep', 'spiralDensitySpeed', function () {
-drawVisualization();
-});
+  if (spiralDensityAnimationInterval) {
+    clearInterval(spiralDensityAnimationInterval);
+  }
+  spiralDensityAnimationInterval = animateValue('spiralDensity', 'spiralDensityText', 'spiralDensityStart', 'spiralDensityEnd', 'spiralDensityStep', 'spiralDensitySpeed', function () {
+    drawVisualization();
+  });
 });
 
 document.getElementById('spiralDensityAnimationStop').addEventListener('click', function () {
-clearInterval(spiralDensityAnimationInterval);
+  clearInterval(spiralDensityAnimationInterval);
 });
 
-document.getElementById('spiralType').addEventListener('change', drawVisualization);
+document.getElementById('spiralType').addEventListener('change', function() {
+  const spiralType = document.getElementById('spiralType').value;
+  const el = document.getElementsByClassName('subdrawer')
+  if (el) [...el].map(el => el.classList.add("hidden"))
+  if (spiralType === 'rose') {
+    document.getElementById('roseSettings').classList.remove("hidden");
+  }else if (['epitrochoid', 'hypotrochoid'].includes(spiralType)) {
+      document.getElementById('trochoidSettings').classList.remove("hidden");
+  }
+  drawVisualization()
+});
 document.getElementById('fontSize').addEventListener('input', function () {
-document.getElementById('fontSizeText').value = this.value;
-drawVisualization();
+  document.getElementById('fontSizeText').value = this.value;
+  drawVisualization();
 });
 document.getElementById('fontSizeText').addEventListener('input', function () {
-document.getElementById('fontSize').value = this.value;
-drawVisualization();
+  document.getElementById('fontSize').value = this.value;
+  drawVisualization();
 });
 document.getElementById('spiralDensity').addEventListener('input', function () {
-document.getElementById('spiralDensityText').value = this.value;
-drawVisualization();
+  document.getElementById('spiralDensityText').value = this.value;
+  drawVisualization();
 });
 document.getElementById('spiralDensityText').addEventListener('input', function () {
-document.getElementById('spiralDensity').value = this.value;
-drawVisualization();
+  document.getElementById('spiralDensity').value = this.value;
+  drawVisualization();
 });
 document.getElementById('highlightWord').addEventListener('input', drawVisualization);
 document.getElementById('searchButton').addEventListener('click', searchAndHighlight);
@@ -327,7 +403,10 @@ document.getElementById('abjadSize').addEventListener('change', drawVisualizatio
 document.getElementById('abjadWordTotal').addEventListener('change', drawVisualization);
 
 document.querySelectorAll('.controls h3').forEach(function (header) {
-header.addEventListener('click', function () {
-this.parentElement.classList.toggle('active');
+  header.addEventListener('click', function () {
+    this.parentElement.classList.toggle('active');
+  });
 });
-});
+
+document.getElementById('roseSettingsUpdate').addEventListener('click', updateRoseSettings)
+document.getElementById('trochoidSettingsUpdate').addEventListener('click', updateTrochoidSettings)
