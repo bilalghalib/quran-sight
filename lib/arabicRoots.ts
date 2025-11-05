@@ -1,3 +1,11 @@
+// Morphological form entry
+export interface MorphologicalForm {
+  pattern: string
+  form: string
+  status: 'attested' | 'rare' | 'theoretical'
+  meaning: string
+}
+
 // Root pattern type
 export interface RootPattern {
   root: string
@@ -8,6 +16,7 @@ export interface RootPattern {
   letterMeanings?: string
   relatedWords?: string[]
   variants: string[]
+  morphology?: MorphologicalForm[]
 }
 
 import { getSearchVariantsForRoot, getAllFormsForRoot, type RootForm } from './rootForms'
@@ -61,7 +70,24 @@ export const rootPatterns: Record<string, RootPattern> = {
     etymology: 'From root ر-و-ح (rāha) meaning "to rest, to be relieved, to blow (wind)". The spirit as the breath of life given by Allah, bringing relief and animation to the body.',
     letterMeanings: 'ر (ra) represents flow/movement, و (waw) signifies connection/medium, ح (ha) denotes life-force/breath',
     relatedWords: ['رَاحَ (to go/depart)', 'رَاحَة (rest/comfort)', 'رِيح (wind)', 'رَوْح (relief)', 'رَيْحان (sweet basil/fragrance)', 'مُسْتَرِيح (one at rest)'],
-    variants: ['روح', 'الروح', 'روحنا', 'روحي', 'أرواح', 'الأرواح']
+    variants: ['روح', 'الروح', 'روحنا', 'روحي', 'أرواح', 'الأرواح'],
+    morphology: [
+      { pattern: 'Noun فُعْل', form: 'رُوح', status: 'attested', meaning: 'spirit, soul; also "breeze/relief" in some uses' },
+      { pattern: 'Plural أَفْعَال', form: 'أَرْوَاح', status: 'attested', meaning: 'spirits, souls' },
+      { pattern: 'Form I', form: 'رَاحَ / يَرُوحُ', status: 'attested', meaning: 'to go, depart; in some idioms: to relax' },
+      { pattern: 'Form II', form: 'رَوَّحَ / يُرَوِّحُ', status: 'attested', meaning: 'to give rest; to refresh; "entertain"' },
+      { pattern: 'Form II masdar', form: 'تَرْوِيح', status: 'attested', meaning: 'providing rest; recreation (ترويح عن النفس)' },
+      { pattern: 'Form IV', form: 'أَرَاحَ / يُرِيحُ', status: 'attested', meaning: 'to relieve, comfort' },
+      { pattern: 'Form V', form: 'تَرَوَّحَ / يَتَرَوَّحُ', status: 'attested', meaning: 'to seek fresh air/rest' },
+      { pattern: 'Form X', form: 'اِسْتَرَاحَ / يَسْتَرِيحُ', status: 'attested', meaning: 'to take a rest' },
+      { pattern: 'Masdar X', form: 'اِسْتِرَاحَة', status: 'attested', meaning: 'a break, rest, "rest area"' },
+      { pattern: 'Nisba adj.', form: 'رُوحِيّ', status: 'attested', meaning: 'spiritual; of the spirit' },
+      { pattern: 'Form III فَاعَلَ', form: 'رَاوَحَ', status: 'rare', meaning: 'to alternate, go back and forth; could metaphorically mean: spirits "taking turns" in influence' },
+      { pattern: 'Form VI تَفَاعَلَ', form: 'تَرَاوَحَ', status: 'attested', meaning: 'to alternate mutually; might be used for moods that come and go in waves' },
+      { pattern: 'Form VII اِنْفَعَلَ', form: 'اِنْرَاحَ', status: 'theoretical', meaning: 'could mean: to be relieved spontaneously, "relief happened to him"' },
+      { pattern: 'Form VIII اِفْتَعَلَ', form: 'اِرْتَاحَ', status: 'attested', meaning: 'to rest; spiritually re-breeze oneself' },
+      { pattern: 'Intensive فَعَّال', form: 'رَوَّاح', status: 'rare', meaning: 'someone who goes around bringing relief or a lot of movement; also has a sense of "traveller"' }
+    ]
   },
 
   // نفس - soul/self

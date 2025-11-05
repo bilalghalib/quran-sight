@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { fetchVerseData, VerseWithData, Word } from '@/lib/quranApi'
 import { getChapterAndVerse } from '@/lib/verseMapping'
-import { rootPatterns, RootKey } from '@/lib/arabicRoots'
+import { rootPatterns, RootKey, matchesRootWithForm } from '@/lib/arabicRoots'
 import { cleanupHarakat } from './utils'
 
 interface Verse {
@@ -158,11 +158,17 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
           {verseData && verseData.words ? (
             // API data loaded - show word-by-word with hover
             verseData.words.map((word, idx) => {
-              // Clean both the API word and the highlight word for comparison (removes diacritics)
-              const cleanApiWord = cleanupHarakat(word.text_uthmani)
-              const cleanHighlightWord = highlightWord ? cleanupHarakat(highlightWord) : ''
-              const isHighlighted = highlightWord &&
-                (cleanApiWord.includes(cleanHighlightWord) || cleanHighlightWord.includes(cleanApiWord))
+              // Use proper root matching if activeRoot is available
+              let isHighlighted = false
+              if (activeRoot && highlightWord) {
+                // Use morphological root matching (exact, not substring)
+                isHighlighted = matchesRootWithForm(word.text_uthmani, activeRoot) !== null
+              } else if (highlightWord) {
+                // Fallback to exact word matching (not substring)
+                const cleanApiWord = cleanupHarakat(word.text_uthmani)
+                const cleanHighlightWord = cleanupHarakat(highlightWord)
+                isHighlighted = cleanApiWord === cleanHighlightWord
+              }
 
               return (
                 <span
@@ -210,31 +216,43 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
           ) : (
             // Show local text immediately (no API needed)
             highlightWord ? (
-              verse.words.map((word, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    backgroundColor: word.includes(highlightWord) || highlightWord.includes(word)
-                      ? 'rgba(255, 215, 0, 0.8)'
-                      : 'transparent',
-                    padding: word.includes(highlightWord) || highlightWord.includes(word)
-                      ? '4px 6px'
-                      : '0',
-                    borderRadius: '4px',
-                    fontWeight: word.includes(highlightWord) || highlightWord.includes(word)
-                      ? '900'
-                      : 'normal',
-                    border: word.includes(highlightWord) || highlightWord.includes(word)
-                      ? '2px solid rgba(255, 140, 0, 0.9)'
-                      : 'none',
-                    boxShadow: word.includes(highlightWord) || highlightWord.includes(word)
-                      ? '0 0 10px rgba(255, 215, 0, 0.6)'
-                      : 'none'
-                  }}
-                >
-                  {word}{' '}
-                </span>
-              ))
+              verse.words.map((word, idx) => {
+                // Use proper root matching if activeRoot is available, otherwise exact match
+                let isHighlighted = false
+                if (activeRoot) {
+                  isHighlighted = matchesRootWithForm(word, activeRoot) !== null
+                } else {
+                  const cleanWord = cleanupHarakat(word)
+                  const cleanHighlight = cleanupHarakat(highlightWord)
+                  isHighlighted = cleanWord === cleanHighlight
+                }
+
+                return (
+                  <span
+                    key={idx}
+                    style={{
+                      backgroundColor: isHighlighted
+                        ? 'rgba(255, 215, 0, 0.8)'
+                        : 'transparent',
+                      padding: isHighlighted
+                        ? '4px 6px'
+                        : '0',
+                      borderRadius: '4px',
+                      fontWeight: isHighlighted
+                        ? '900'
+                        : 'normal',
+                      border: isHighlighted
+                        ? '2px solid rgba(255, 140, 0, 0.9)'
+                        : 'none',
+                      boxShadow: isHighlighted
+                        ? '0 0 10px rgba(255, 215, 0, 0.6)'
+                        : 'none'
+                    }}
+                  >
+                    {word}{' '}
+                  </span>
+                )
+              })
             ) : (
               verse.text
             )
@@ -405,7 +423,7 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
             )}
 
             {rootPatterns[activeRoot].relatedWords && rootPatterns[activeRoot].relatedWords!.length > 0 && (
-              <div>
+              <div style={{ marginBottom: '12px' }}>
                 <div style={{ fontSize: '12px', color: '#64b4ff', fontWeight: '600', marginBottom: '6px' }}>
                   Related Words
                 </div>
@@ -423,6 +441,87 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
                       }}
                     >
                       {word}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {rootPatterns[activeRoot].morphology && rootPatterns[activeRoot].morphology!.length > 0 && (
+              <div>
+                <div style={{ fontSize: '12px', color: '#64b4ff', fontWeight: '600', marginBottom: '8px' }}>
+                  Morphological Forms (Sarf)
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gap: '6px',
+                  fontSize: '12px'
+                }}>
+                  {rootPatterns[activeRoot].morphology!.map((morph, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '8px 10px',
+                        backgroundColor: morph.status === 'attested'
+                          ? 'rgba(100, 180, 255, 0.1)'
+                          : morph.status === 'rare'
+                          ? 'rgba(255, 200, 100, 0.1)'
+                          : 'rgba(150, 150, 150, 0.08)',
+                        borderLeft: morph.status === 'attested'
+                          ? '3px solid rgba(100, 180, 255, 0.6)'
+                          : morph.status === 'rare'
+                          ? '3px solid rgba(255, 200, 100, 0.6)'
+                          : '3px solid rgba(150, 150, 150, 0.4)',
+                        borderRadius: '4px',
+                        lineHeight: '1.5'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                        <span style={{
+                          fontSize: '11px',
+                          color: '#888',
+                          fontWeight: '600'
+                        }}>
+                          {morph.pattern}
+                        </span>
+                        {morph.status === 'attested' && (
+                          <span style={{ fontSize: '10px', color: '#4CAF50' }}>✓</span>
+                        )}
+                        {morph.status === 'rare' && (
+                          <span style={{
+                            fontSize: '9px',
+                            padding: '1px 4px',
+                            backgroundColor: 'rgba(255, 200, 100, 0.2)',
+                            borderRadius: '2px',
+                            color: '#ffb347'
+                          }}>
+                            rare
+                          </span>
+                        )}
+                        {morph.status === 'theoretical' && (
+                          <span style={{
+                            fontSize: '9px',
+                            padding: '1px 4px',
+                            backgroundColor: 'rgba(150, 150, 150, 0.2)',
+                            borderRadius: '2px',
+                            color: '#aaa'
+                          }}>
+                            theoretical
+                          </span>
+                        )}
+                      </div>
+                      <div style={{
+                        fontFamily: 'Noto Naskh Arabic, Arial',
+                        fontSize: '14px',
+                        color: '#64b4ff',
+                        fontWeight: 'bold',
+                        marginBottom: '3px'
+                      }}>
+                        {morph.form}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#ccc', lineHeight: '1.5' }}>
+                        {morph.meaning}
+                      </div>
                     </div>
                   ))}
                 </div>
