@@ -1,0 +1,30 @@
+{
+  "name": "quran-sight",
+  "version": "1.0.0",
+  "description": "A package and series of tools to explore the quran visually.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@quranjs/api": "^2.0.0",
+    "arabic-utils": "^6.0.1",
+    "konva": "^10.0.8",
+    "mark.js": "^8.11.1",
+    "next": "^16.0.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-konva": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "typescript": "^5.9.3"
+  }
+}

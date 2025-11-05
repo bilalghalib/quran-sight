@@ -1,0 +1,86 @@
+.controls {
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.drawer {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.drawer h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.drawer h3:hover {
+  color: #4CAF50;
+}
+
+.subdrawer {
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.drawerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.controls label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.controls input[type="text"],
+.controls input[type="number"],
+.controls select {
+  width: 100%;
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.controls input[type="range"] {
+  width: calc(100% - 50px);
+  margin-right: 10px;
+}
+
+.controls input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.controls button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.controls button:hover {
+  background-color: #45a049;
+}
+
+.controls button:active {
+  background-color: #3d8b40;
+}

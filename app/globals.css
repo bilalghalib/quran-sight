@@ -1,0 +1,15 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  overflow: hidden;
+}
+
+#canvas {
+  font-family: 'Noto Naskh Arabic', serif;
+}
