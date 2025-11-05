@@ -21,8 +21,34 @@ interface SearchDrawerProps {
   onVerseClick: (verseNumber: number) => void
 }
 
+// Helper to get pattern description
+function getPatternDescription(pattern: string): string {
+  if (pattern.includes('Form I')) return 'Base verb form'
+  if (pattern.includes('Form II')) return 'Intensive/Causative'
+  if (pattern.includes('Form III')) return 'Associative'
+  if (pattern.includes('Form IV')) return 'Causative'
+  if (pattern.includes('Form V')) return 'Reflexive of II'
+  if (pattern.includes('Form VI')) return 'Reciprocal'
+  if (pattern.includes('Form VII')) return 'Passive reflexive'
+  if (pattern.includes('Form VIII')) return 'Reflexive'
+  if (pattern.includes('Form IX')) return 'Colors/defects'
+  if (pattern.includes('Form X')) return 'Request/seek'
+  if (pattern.includes('Active Participle')) return 'Doer of action'
+  if (pattern.includes('Passive Participle')) return 'Receiver of action'
+  if (pattern.includes('Verbal Noun')) return 'Action/state noun'
+  if (pattern.includes('Noun of Place')) return 'Location noun'
+  if (pattern.includes('Noun of Time')) return 'Time noun'
+  if (pattern.includes('Noun of Instrument')) return 'Tool noun'
+  if (pattern.includes('Comparative')) return 'More/most form'
+  if (pattern.includes('Intensive')) return 'Emphasizing form'
+  if (pattern.includes('Base form')) return 'Root word'
+  if (pattern.includes('Variant')) return 'Alternative form'
+  return 'Derived form'
+}
+
 export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProps) {
   const [showBreakdown, setShowBreakdown] = useState(true)
+  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
 
   // Group results by morphological pattern
   const morphologyBreakdown = results.reduce((acc, result) => {
@@ -43,6 +69,24 @@ export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProp
 
   const sortedPatterns = Object.entries(morphologyBreakdown).sort((a, b) => b[1].count - a[1].count)
 
+  // Filter results based on selected patterns
+  const filteredResults = selectedPatterns.size === 0
+    ? results
+    : results.filter(r => r.matchedForm && selectedPatterns.has(r.matchedForm.pattern))
+
+  // Toggle pattern selection
+  const togglePattern = (pattern: string) => {
+    setSelectedPatterns(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(pattern)) {
+        newSet.delete(pattern)
+      } else {
+        newSet.add(pattern)
+      }
+      return newSet
+    })
+  }
+
   return (
     <div style={{
       width: '400px',
@@ -53,7 +97,7 @@ export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProp
       borderLeft: '1px solid #444'
     }}>
       <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
-        Search Results {results.length > 0 && `(${results.length})`}
+        Search Results {results.length > 0 && `(${filteredResults.length}${selectedPatterns.size > 0 ? ` of ${results.length}` : ''})`}
       </h2>
 
       {/* Morphology Breakdown */}
@@ -75,8 +119,8 @@ export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProp
               marginBottom: showBreakdown ? '12px' : '0'
             }}
           >
-            <h3 style={{ margin: 0, fontSize: '14px', color: '#4CAF50' }}>
-              Morphology Breakdown
+            <h3 style={{ margin: 0, fontSize: '15px', color: '#4CAF50' }}>
+              Morphology Breakdown {selectedPatterns.size > 0 && `(${selectedPatterns.size} active)`}
             </h3>
             <span style={{ fontSize: '12px', color: '#888' }}>
               {showBreakdown ? '▼' : '▶'}
@@ -84,54 +128,88 @@ export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProp
           </div>
 
           {showBreakdown && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {sortedPatterns.map(([pattern, data]) => (
-                <div
-                  key={pattern}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '8px 10px',
-                    backgroundColor: data.isTheoretical
-                      ? 'rgba(255, 140, 0, 0.08)'
-                      : 'rgba(100, 180, 255, 0.08)',
-                    borderRadius: '4px',
-                    borderLeft: data.isTheoretical
-                      ? '3px solid rgba(255, 140, 0, 0.5)'
-                      : '3px solid rgba(100, 180, 255, 0.5)'
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#ddd' }}>
-                      {pattern}
-                      {data.isTheoretical && (
-                        <span style={{
-                          marginLeft: '6px',
-                          fontSize: '10px',
-                          color: '#ff8c00'
-                        }}>
-                          ★
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
-                      {Array.from(data.forms).slice(0, 3).join(', ')}
-                      {data.forms.size > 3 && '...'}
-                    </div>
-                  </div>
-                  <div style={{
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    color: data.isTheoretical ? '#ff8c00' : '#64b4ff',
-                    minWidth: '30px',
-                    textAlign: 'right'
-                  }}>
-                    {data.count}
-                  </div>
+            <>
+              {selectedPatterns.size > 0 && (
+                <div style={{ marginBottom: '10px', fontSize: '11px', color: '#888', fontStyle: 'italic' }}>
+                  Click to toggle filters • Click again to show all
                 </div>
-              ))}
-            </div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {sortedPatterns.map(([pattern, data]) => {
+                  const isSelected = selectedPatterns.has(pattern)
+                  const description = getPatternDescription(pattern)
+
+                  return (
+                    <div
+                      key={pattern}
+                      onClick={() => togglePattern(pattern)}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        backgroundColor: isSelected
+                          ? (data.isTheoretical ? 'rgba(255, 140, 0, 0.25)' : 'rgba(100, 180, 255, 0.25)')
+                          : (data.isTheoretical ? 'rgba(255, 140, 0, 0.08)' : 'rgba(100, 180, 255, 0.08)'),
+                        borderRadius: '6px',
+                        borderLeft: isSelected
+                          ? (data.isTheoretical ? '4px solid rgba(255, 140, 0, 0.9)' : '4px solid rgba(100, 180, 255, 0.9)')
+                          : (data.isTheoretical ? '3px solid rgba(255, 140, 0, 0.5)' : '3px solid rgba(100, 180, 255, 0.5)'),
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        border: isSelected ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.02)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)'
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#fff', marginBottom: '3px' }}>
+                          {pattern}
+                          {data.isTheoretical && (
+                            <span style={{
+                              marginLeft: '6px',
+                              fontSize: '10px',
+                              color: '#ff8c00'
+                            }}>
+                              ★
+                            </span>
+                          )}
+                          {isSelected && (
+                            <span style={{
+                              marginLeft: '6px',
+                              fontSize: '11px',
+                              color: '#4CAF50'
+                            }}>
+                              ✓
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '3px' }}>
+                          {description}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#888' }}>
+                          {Array.from(data.forms).slice(0, 3).join(', ')}
+                          {data.forms.size > 3 && '...'}
+                        </div>
+                      </div>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: data.isTheoretical ? '#ff8c00' : '#64b4ff',
+                        minWidth: '35px',
+                        textAlign: 'right'
+                      }}>
+                        {data.count}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -142,7 +220,7 @@ export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProp
         </p>
       ) : (
         <div>
-          {results.map((result, index) => (
+          {filteredResults.map((result, index) => (
             <div
               key={`${result.verseNumber}-${result.wordIndex}-${index}`}
               onClick={() => onVerseClick(result.verseNumber)}

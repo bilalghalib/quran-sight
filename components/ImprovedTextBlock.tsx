@@ -509,18 +509,20 @@ export default function ImprovedTextBlock() {
                           padding: '8px 12px',
                           borderRadius: '6px',
                           fontSize: '12px',
+                          lineHeight: '1.4',
                           whiteSpace: 'nowrap',
                           zIndex: 1000,
                           boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                          pointerEvents: 'none'
+                          pointerEvents: 'none',
+                          fontFamily: 'system-ui, -apple-system, sans-serif'
                         }}>
-                          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#4CAF50' }}>
+                          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#4CAF50', lineHeight: '1.2' }}>
                             {count} {count === 1 ? 'match' : 'matches'}
                           </div>
-                          <div style={{ fontSize: '11px', color: '#ccc' }}>
+                          <div style={{ fontSize: '11px', color: '#ccc', lineHeight: '1.3' }}>
                             Verses {startVerse} - {endVerse}
                           </div>
-                          <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
+                          <div style={{ fontSize: '10px', color: '#888', marginTop: '2px', lineHeight: '1.2' }}>
                             Intensity: {Math.round(opacity * 100)}%
                           </div>
                         </div>
