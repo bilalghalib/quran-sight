@@ -77,15 +77,14 @@ export async function GET(request: NextRequest) {
     const verseKey = `${chapter}:${verse}`
 
     // Fetch verse with translations and word data
-    // Using translation ID 131 (Clear Quran - Dr. Mustafa Khattab)
+    // Using translation ID 20 (English) and 131 (Clear Quran - Dr. Mustafa Khattab)
     const params = new URLSearchParams({
       language: 'en',
       words: 'true',
+      translations: '20,131', // Try comma-separated values
       word_fields: 'text_uthmani,text_imlaei,translation,transliteration',
       translation_fields: 'resource_name,language_name'
     })
-    // Try array notation for translations
-    params.append('translations[]', '131')
 
     const url = `${apiBaseUrl}/verses/by_key/${verseKey}?${params}`
 
