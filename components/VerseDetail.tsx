@@ -22,6 +22,7 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
   const [verseData, setVerseData] = useState<VerseWithData | null>(null)
   const [loading, setLoading] = useState(true)
   const [hoveredWord, setHoveredWord] = useState<Word | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const [chapterVerse, setChapterVerse] = useState({ chapter: 1, verse: 1 })
 
   useEffect(() => {
@@ -41,7 +42,11 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
         const data = await fetchVerseData(cv.chapter, cv.verse)
         if (data) {
           console.log('API data loaded:', data)
+          console.log('Translations:', data.translations)
+          console.log('Words:', data.words)
           setVerseData(data)
+        } else {
+          console.log('No data returned from API')
         }
       } catch (error) {
         console.error('Error loading verse data from API:', error)
@@ -158,7 +163,14 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
               return (
                 <span
                   key={word.id}
-                  onMouseEnter={() => setHoveredWord(word)}
+                  onMouseEnter={(e) => {
+                    setHoveredWord(word)
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltipPosition({
+                      x: rect.left + rect.width / 2,
+                      y: rect.top - 10
+                    })
+                  }}
                   onMouseLeave={() => setHoveredWord(null)}
                   style={{
                     backgroundColor: isHighlighted
@@ -219,25 +231,26 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
           )}
         </div>
 
-        {/* Word Translation Tooltip */}
+        {/* Word Translation Tooltip - positioned above the hovered word */}
         {hoveredWord && hoveredWord.translation && (
           <div style={{
             position: 'fixed',
-            bottom: '100px',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            top: `${tooltipPosition.y}px`,
+            left: `${tooltipPosition.x}px`,
+            transform: 'translate(-50%, -100%)',
             backgroundColor: 'rgba(76, 175, 80, 0.95)',
             color: '#fff',
-            padding: '12px 20px',
-            borderRadius: '8px',
+            padding: '8px 16px',
+            borderRadius: '6px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             zIndex: 1001,
-            maxWidth: '400px',
+            maxWidth: '300px',
             textAlign: 'center',
-            fontSize: '16px',
-            fontWeight: 'bold'
+            fontSize: '14px',
+            fontWeight: 'bold',
+            pointerEvents: 'none'
           }}>
-            <div style={{ marginBottom: '4px', fontSize: '14px', opacity: 0.9 }}>
+            <div style={{ marginBottom: '2px', fontSize: '12px', opacity: 0.9 }}>
               {hoveredWord.transliteration?.text}
             </div>
             <div>{hoveredWord.translation.text}</div>
@@ -245,7 +258,7 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
         )}
 
         {/* Full Translation - shown immediately if available */}
-        {verseData && verseData.translations && verseData.translations.length > 0 && (
+        {verseData && verseData.translations && verseData.translations.length > 0 ? (
           <div style={{
             marginTop: '20px',
             marginBottom: '20px',
@@ -283,6 +296,34 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
                 </div>
               </div>
             ))}
+          </div>
+        ) : loading ? (
+          <div style={{
+            marginTop: '20px',
+            marginBottom: '20px',
+            padding: '20px',
+            backgroundColor: 'rgba(76, 175, 80, 0.05)',
+            borderLeft: '4px solid #4CAF50',
+            borderRadius: '6px',
+            textAlign: 'center',
+            color: '#4CAF50',
+            fontStyle: 'italic'
+          }}>
+            Loading translation...
+          </div>
+        ) : (
+          <div style={{
+            marginTop: '20px',
+            marginBottom: '20px',
+            padding: '20px',
+            backgroundColor: 'rgba(255, 165, 0, 0.05)',
+            borderLeft: '4px solid #ff8c00',
+            borderRadius: '6px',
+            textAlign: 'center',
+            color: '#ff8c00',
+            fontStyle: 'italic'
+          }}>
+            Translation not available
           </div>
         )}
 

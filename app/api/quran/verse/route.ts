@@ -78,13 +78,18 @@ export async function GET(request: NextRequest) {
 
     // Fetch verse with translations and word data
     // Using translation ID 131 (Clear Quran - Dr. Mustafa Khattab)
-    const url = `${apiBaseUrl}/verses/by_key/${verseKey}?` + new URLSearchParams({
+    const params = new URLSearchParams({
       language: 'en',
       words: 'true',
-      translations: '131', // Clear Quran translation
       word_fields: 'text_uthmani,text_imlaei,translation,transliteration',
       translation_fields: 'resource_name,language_name'
     })
+    // Try array notation for translations
+    params.append('translations[]', '131')
+
+    const url = `${apiBaseUrl}/verses/by_key/${verseKey}?${params}`
+
+    console.log('Requesting URL:', url)
 
     const response = await fetch(url, {
       headers: {
@@ -104,6 +109,12 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json()
+    console.log('Quran Foundation API Response keys:', Object.keys(data))
+    console.log('Has translations:', 'translations' in data)
+    if (data.verse) {
+      console.log('Verse keys:', Object.keys(data.verse))
+      console.log('Verse has translations:', 'translations' in data.verse)
+    }
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching verse:', error)
