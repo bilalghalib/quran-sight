@@ -49,6 +49,7 @@ export default function ImprovedTextBlock() {
   const [clickedWord, setClickedWord] = useState<string | undefined>(undefined)
   const [showSettings, setShowSettings] = useState(false)
   const [hoveredHeatmapBin, setHoveredHeatmapBin] = useState<number | null>(null)
+  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
 
   // Initialize Mark.js instance
   useEffect(() => {
@@ -238,25 +239,65 @@ export default function ImprovedTextBlock() {
       pattern: r.matchedForm?.pattern
     })))
 
+    // Always store all results
+    setSearchResults(results)
+    generateHeatmap(results)
+
+    // Highlight words (will be filtered by selectedPatterns effect)
     const wordsArray = Array.from(matchedWords)
     if (wordsArray.length > 0) {
       markInstanceRef.current.mark(wordsArray, {
         separateWordSearch: false,
         acrossElements: true,
-        className: 'highlight-root',
-        done: () => {
-          setSearchResults(results)
-          generateHeatmap(results)
-        }
+        className: 'highlight-root'
       })
     }
   }
+
+  // Re-highlight when selected patterns change
+  useEffect(() => {
+    if (!activeRoot || !markInstanceRef.current || searchResults.length === 0) return
+
+    markInstanceRef.current.unmark()
+
+    // Filter words based on selected patterns
+    const filteredWords = new Set<string>()
+    searchResults.forEach(result => {
+      if (result.matchedForm) {
+        // If no patterns selected, show all
+        // If patterns selected, only show matching patterns
+        if (selectedPatterns.size === 0 || selectedPatterns.has(result.matchedForm.pattern)) {
+          result.context.split(' ').forEach(word => {
+            if (matchesRootWithForm(word, activeRoot)) {
+              filteredWords.add(word)
+            }
+          })
+        }
+      }
+    })
+
+    const wordsArray = Array.from(filteredWords)
+    if (wordsArray.length > 0) {
+      markInstanceRef.current.mark(wordsArray, {
+        separateWordSearch: false,
+        acrossElements: true,
+        className: 'highlight-root'
+      })
+    }
+
+    // Update heatmap with filtered results
+    const filteredResults = selectedPatterns.size === 0
+      ? searchResults
+      : searchResults.filter(r => r.matchedForm && selectedPatterns.has(r.matchedForm.pattern))
+    generateHeatmap(filteredResults)
+  }, [selectedPatterns, searchResults, activeRoot])
 
   const clearSearch = () => {
     setSearchTerm('')
     setActiveRoot(null)
     setSearchResults([])
     setHeatmapData([])
+    setSelectedPatterns(new Set())
     if (markInstanceRef.current) {
       markInstanceRef.current.unmark()
     }
@@ -700,6 +741,8 @@ export default function ImprovedTextBlock() {
       <SearchDrawer
         results={searchResults}
         onVerseClick={handleVerseClick}
+        selectedPatterns={selectedPatterns}
+        onPatternsChange={setSelectedPatterns}
       />
 
       {/* Verse Detail Modal */}

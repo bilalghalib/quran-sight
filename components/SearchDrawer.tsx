@@ -19,6 +19,8 @@ interface SearchResult {
 interface SearchDrawerProps {
   results: SearchResult[]
   onVerseClick: (verseNumber: number) => void
+  selectedPatterns: Set<string>
+  onPatternsChange: (patterns: Set<string>) => void
 }
 
 // Helper to get pattern description
@@ -46,9 +48,8 @@ function getPatternDescription(pattern: string): string {
   return 'Derived form'
 }
 
-export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProps) {
+export default function SearchDrawer({ results, onVerseClick, selectedPatterns, onPatternsChange }: SearchDrawerProps) {
   const [showBreakdown, setShowBreakdown] = useState(true)
-  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
 
   // Group results by morphological pattern
   const morphologyBreakdown = results.reduce((acc, result) => {
@@ -76,15 +77,13 @@ export default function SearchDrawer({ results, onVerseClick }: SearchDrawerProp
 
   // Toggle pattern selection
   const togglePattern = (pattern: string) => {
-    setSelectedPatterns(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(pattern)) {
-        newSet.delete(pattern)
-      } else {
-        newSet.add(pattern)
-      }
-      return newSet
-    })
+    const newSet = new Set(selectedPatterns)
+    if (newSet.has(pattern)) {
+      newSet.delete(pattern)
+    } else {
+      newSet.add(pattern)
+    }
+    onPatternsChange(newSet)
   }
 
   return (
