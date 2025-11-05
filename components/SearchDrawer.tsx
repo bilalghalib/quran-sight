@@ -21,6 +21,9 @@ interface SearchDrawerProps {
   onVerseClick: (verseNumber: number) => void
   selectedPatterns: Set<string>
   onPatternsChange: (patterns: Set<string>) => void
+  isMobile?: boolean
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 // Helper to get pattern description
@@ -48,8 +51,11 @@ function getPatternDescription(pattern: string): string {
   return 'Derived form'
 }
 
-export default function SearchDrawer({ results, onVerseClick, selectedPatterns, onPatternsChange }: SearchDrawerProps) {
+export default function SearchDrawer({ results, onVerseClick, selectedPatterns, onPatternsChange, isMobile = false, isOpen = true, onClose }: SearchDrawerProps) {
   const [showBreakdown, setShowBreakdown] = useState(true)
+
+  // On mobile, show only when open; on desktop, always show
+  if (isMobile && !isOpen) return null
 
   // Group results by morphological pattern
   const morphologyBreakdown = results.reduce((acc, result) => {
@@ -87,14 +93,42 @@ export default function SearchDrawer({ results, onVerseClick, selectedPatterns, 
   }
 
   return (
-    <div style={{
-      width: '400px',
-      backgroundColor: '#2a2a2a',
-      color: '#fff',
-      padding: '20px',
-      overflowY: 'auto',
-      borderLeft: '1px solid #444'
-    }}>
+    <>
+      {/* Mobile backdrop */}
+      {isMobile && isOpen && (
+        <div
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999
+          }}
+        />
+      )}
+
+      <div style={{
+        width: isMobile ? '85%' : '400px',
+        maxWidth: isMobile ? '400px' : undefined,
+        backgroundColor: '#2a2a2a',
+        color: '#fff',
+        padding: '20px',
+        overflowY: 'auto',
+        borderLeft: '1px solid #444',
+        ...(isMobile ? {
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1000,
+          boxShadow: '-4px 0 12px rgba(0,0,0,0.3)',
+          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s ease'
+        } : {})
+      }}>
       <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
         Search Results {results.length > 0 && `(${filteredResults.length}${selectedPatterns.size > 0 ? ` of ${results.length}` : ''})`}
       </h2>
@@ -337,5 +371,6 @@ export default function SearchDrawer({ results, onVerseClick, selectedPatterns, 
         </div>
       )}
     </div>
+    </>
   )
 }

@@ -50,6 +50,18 @@ export default function ImprovedTextBlock() {
   const [showSettings, setShowSettings] = useState(false)
   const [hoveredHeatmapBin, setHoveredHeatmapBin] = useState<number | null>(null)
   const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
+  const [isSearchDrawerOpen, setIsSearchDrawerOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Initialize Mark.js instance
   useEffect(() => {
@@ -382,16 +394,17 @@ export default function ImprovedTextBlock() {
         {/* Controls */}
         <div style={{
           position: 'fixed',
-          top: 20,
-          left: 20,
+          top: isMobile ? 10 : 20,
+          left: isMobile ? 10 : 20,
           zIndex: 10,
           backgroundColor: 'rgba(50, 50, 50, 0.95)',
-          padding: '20px',
+          padding: isMobile ? '12px' : '20px',
           borderRadius: '8px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
           color: '#fff',
-          minWidth: '280px',
-          maxHeight: 'calc(100vh - 80px)',
+          minWidth: isMobile ? '180px' : '280px',
+          maxWidth: isMobile ? '90vw' : undefined,
+          maxHeight: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 80px)',
           overflowY: 'auto'
         }}>
           <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', borderBottom: '1px solid #555', paddingBottom: '10px' }}>
@@ -737,12 +750,43 @@ export default function ImprovedTextBlock() {
         )}
       </div>
 
+      {/* Mobile Toggle Button for Search Drawer */}
+      {isMobile && (
+        <button
+          onClick={() => setIsSearchDrawerOpen(!isSearchDrawerOpen)}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            backgroundColor: '#4CAF50',
+            color: '#fff',
+            border: 'none',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            cursor: 'pointer',
+            zIndex: 1001,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '24px',
+            fontWeight: 'bold'
+          }}
+        >
+          {isSearchDrawerOpen ? '✕' : '☰'}
+        </button>
+      )}
+
       {/* Search Results Drawer */}
       <SearchDrawer
         results={searchResults}
         onVerseClick={handleVerseClick}
         selectedPatterns={selectedPatterns}
         onPatternsChange={setSelectedPatterns}
+        isMobile={isMobile}
+        isOpen={isSearchDrawerOpen}
+        onClose={() => setIsSearchDrawerOpen(false)}
       />
 
       {/* Verse Detail Modal */}
