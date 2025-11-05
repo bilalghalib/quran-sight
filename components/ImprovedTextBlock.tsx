@@ -48,6 +48,7 @@ export default function ImprovedTextBlock() {
   const [heatmapData, setHeatmapData] = useState<number[]>([])
   const [clickedWord, setClickedWord] = useState<string | undefined>(undefined)
   const [showSettings, setShowSettings] = useState(false)
+  const [hoveredHeatmapBin, setHoveredHeatmapBin] = useState<number | null>(null)
 
   // Initialize Mark.js instance
   useEffect(() => {
@@ -461,31 +462,70 @@ export default function ImprovedTextBlock() {
 
           {/* Heatmap/Minimap */}
           {heatmapData.length > 0 && (
-            <div style={{ marginBottom: '15px' }}>
+            <div style={{ marginBottom: '15px', position: 'relative' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>
                 Distribution Heatmap:
               </label>
-              <div style={{ display: 'flex', height: '50px', gap: '1px', backgroundColor: '#1a1a1a', padding: '8px', borderRadius: '6px', border: '1px solid #333' }}>
+              <div style={{ display: 'flex', height: '50px', gap: '1px', backgroundColor: '#1a1a1a', padding: '8px', borderRadius: '6px', border: '1px solid #333', position: 'relative' }}>
                 {heatmapData.map((count, index) => {
+                  const startVerse = Math.floor(index * 62.36) + 1
+                  const endVerse = Math.floor((index + 1) * 62.36)
                   // Enhanced color scale: minimum 0.2 opacity for visibility, max 1.0
                   const opacity = count > 0
                     ? Math.max(0.3, Math.min((count / maxHeatmapValue) * 0.9 + 0.1, 1))
                     : 0
+                  const isHovered = hoveredHeatmapBin === index
 
                   return (
                     <div
                       key={index}
+                      onMouseEnter={() => setHoveredHeatmapBin(index)}
+                      onMouseLeave={() => setHoveredHeatmapBin(null)}
                       style={{
                         flex: 1,
                         backgroundColor: count > 0
                           ? `rgba(76, 255, 120, ${opacity})`
                           : 'rgba(60, 60, 60, 0.15)',
                         borderRadius: '2px',
-                        transition: 'all 0.3s ease',
-                        boxShadow: count > 0 ? `0 0 ${Math.min(count / maxHeatmapValue * 5, 5)}px rgba(76, 255, 120, 0.4)` : 'none'
+                        transition: 'all 0.2s ease',
+                        boxShadow: isHovered && count > 0
+                          ? `0 0 8px rgba(76, 255, 120, 0.8)`
+                          : count > 0
+                          ? `0 0 ${Math.min(count / maxHeatmapValue * 5, 5)}px rgba(76, 255, 120, 0.4)`
+                          : 'none',
+                        transform: isHovered && count > 0 ? 'scaleY(1.2)' : 'scaleY(1)',
+                        cursor: count > 0 ? 'pointer' : 'default',
+                        position: 'relative'
                       }}
-                      title={`Verses ${Math.floor(index * 62.36) + 1}-${Math.floor((index + 1) * 62.36)}: ${count} matches`}
-                    />
+                    >
+                      {isHovered && count > 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '60px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                          color: '#fff',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          whiteSpace: 'nowrap',
+                          zIndex: 1000,
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                          pointerEvents: 'none'
+                        }}>
+                          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#4CAF50' }}>
+                            {count} {count === 1 ? 'match' : 'matches'}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#ccc' }}>
+                            Verses {startVerse} - {endVerse}
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
+                            Intensity: {Math.round(opacity * 100)}%
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
               </div>

@@ -173,6 +173,7 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
                   }}
                   onMouseLeave={() => setHoveredWord(null)}
                   style={{
+                    // Combine highlight and hover: highlight always wins, but add extra glow on hover
                     backgroundColor: isHighlighted
                       ? 'rgba(255, 215, 0, 0.8)'
                       : hoveredWord?.id === word.id
@@ -184,13 +185,18 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
                     border: isHighlighted
                       ? '2px solid rgba(255, 140, 0, 0.9)'
                       : '2px solid transparent',
-                    boxShadow: isHighlighted
+                    // Enhanced glow when highlighted word is hovered
+                    boxShadow: isHighlighted && hoveredWord?.id === word.id
+                      ? '0 0 15px rgba(255, 215, 0, 0.9)'
+                      : isHighlighted
                       ? '0 0 10px rgba(255, 215, 0, 0.6)'
                       : 'none',
                     cursor: 'pointer',
-                    transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
+                    transition: 'box-shadow 0.2s ease',
                     position: 'relative',
-                    display: 'inline-block'
+                    display: 'inline-block',
+                    // Add a subtle scale effect for highlighted words on hover
+                    transform: isHighlighted && hoveredWord?.id === word.id ? 'scale(1.05)' : 'scale(1)'
                   }}
                 >
                   {word.text_uthmani}{' '}
