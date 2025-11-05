@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { fetchVerseData, VerseWithData, Word } from '@/lib/quranApi'
 import { getChapterAndVerse } from '@/lib/verseMapping'
 import { rootPatterns, RootKey } from '@/lib/arabicRoots'
+import { cleanupHarakat } from './utils'
 
 interface Verse {
   number: number
@@ -157,8 +158,11 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
           {verseData && verseData.words ? (
             // API data loaded - show word-by-word with hover
             verseData.words.map((word, idx) => {
+              // Clean both the API word and the highlight word for comparison (removes diacritics)
+              const cleanApiWord = cleanupHarakat(word.text_uthmani)
+              const cleanHighlightWord = highlightWord ? cleanupHarakat(highlightWord) : ''
               const isHighlighted = highlightWord &&
-                (word.text_uthmani.includes(highlightWord) || highlightWord.includes(word.text_uthmani))
+                (cleanApiWord.includes(cleanHighlightWord) || cleanHighlightWord.includes(cleanApiWord))
 
               return (
                 <span
