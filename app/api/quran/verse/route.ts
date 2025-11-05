@@ -45,6 +45,10 @@ async function getAccessToken(): Promise<string> {
   cachedToken = data.access_token
   tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
 
+  if (!cachedToken) {
+    throw new Error('No access token received from authentication')
+  }
+
   return cachedToken
 }
 
