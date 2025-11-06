@@ -591,39 +591,37 @@ export default function ImprovedTextBlock() {
             <h3 style={{ margin: 0, fontSize: '16px' }}>
               Quran Sight
             </h3>
-            {!isMobile && (
-              <button
-                onClick={() => setIsDesktopControlsCollapsed(true)}
-                title="Hide Controls"
-                style={{
-                  backgroundColor: '#444',
-                  border: '1px solid #666',
-                  color: '#ddd',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  transition: 'all 0.2s ease',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#555'
-                  e.currentTarget.style.color = '#fff'
-                  e.currentTarget.style.borderColor = '#888'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#444'
-                  e.currentTarget.style.color = '#ddd'
-                  e.currentTarget.style.borderColor = '#666'
-                }}
-              >
-                ◂
-                <span>Hide</span>
-              </button>
-            )}
+            <button
+              onClick={() => isMobile ? setIsControlsOpen(false) : setIsDesktopControlsCollapsed(true)}
+              title="Hide Controls"
+              style={{
+                backgroundColor: '#444',
+                border: '1px solid #666',
+                color: '#ddd',
+                cursor: 'pointer',
+                fontSize: '13px',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                transition: 'all 0.2s ease',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#555'
+                e.currentTarget.style.color = '#fff'
+                e.currentTarget.style.borderColor = '#888'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#444'
+                e.currentTarget.style.color = '#ddd'
+                e.currentTarget.style.borderColor = '#666'
+              }}
+            >
+              {isMobile ? '✕' : '◂'}
+              <span>Hide</span>
+            </button>
           </div>
 
           {/* Heatmap/Minimap */}
