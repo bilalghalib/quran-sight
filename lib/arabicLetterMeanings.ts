@@ -18,7 +18,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ب': {
     letter: 'ب',
-    name: 'bā'',
+    name: "bā'",
     phonetics: 'voiced [b], both lips',
     symbolic: 'Receptive base, "floor" of writing, entry',
     phenomenological: 'Soft grounded knock, base-note',
@@ -26,7 +26,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ت': {
     letter: 'ت',
-    name: 'tā'',
+    name: "tā'",
     phonetics: 'voiceless [t], tongue–teeth',
     symbolic: 'Light, precise action, subtle movement',
     phenomenological: 'Quick, crisp tap, needle-like',
@@ -34,7 +34,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ث': {
     letter: 'ث',
-    name: 'thā'',
+    name: "thā'",
     phonetics: 'voiceless [θ], tongue between teeth',
     symbolic: '"Thorn-like"; subtle pricks/tensions',
     phenomenological: 'Thin, airy scratch through teeth',
@@ -50,7 +50,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ح': {
     letter: 'ح',
-    name: 'ḥā'',
+    name: "ḥā'",
     phonetics: 'voiceless [ħ], mid-throat',
     symbolic: 'Breath, life, heat, dryness',
     phenomenological: 'Hot, desert-dry whisper scratch',
@@ -58,7 +58,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'خ': {
     letter: 'خ',
-    name: 'khā'',
+    name: "khā'",
     phonetics: 'voiceless [x], upper throat',
     symbolic: 'Strong transformative fire/air',
     phenomenological: 'Rough stormy rasp, gravelly wind',
@@ -82,7 +82,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ر': {
     letter: 'ر',
-    name: 'rā'',
+    name: "rā'",
     phonetics: 'tapped/rolled [r]',
     symbolic: 'Flow, rotation, running movement',
     phenomenological: 'Rolling, spinning vibration, lively',
@@ -130,7 +130,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ط': {
     letter: 'ط',
-    name: 'ṭā'',
+    name: "ṭā'",
     phonetics: 'emphatic [tˤ]',
     symbolic: 'Firm decisiveness, cutting through',
     phenomenological: 'Tense explosive T with weight',
@@ -138,7 +138,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ظ': {
     letter: 'ظ',
-    name: 'ẓā'',
+    name: "ẓā'",
     phonetics: 'emphatic [ðˤ]',
     symbolic: 'Overpowering, pressing, dominance',
     phenomenological: 'Deep pressed buzz, heavy engine',
@@ -162,7 +162,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ف': {
     letter: 'ف',
-    name: 'fā'',
+    name: "fā'",
     phonetics: 'voiceless [f], lip–teeth',
     symbolic: 'Blowing, dispersing, separation',
     phenomenological: 'Focused airy puff at lips',
@@ -210,7 +210,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ه': {
     letter: 'ه',
-    name: 'hā'',
+    name: "hā'",
     phonetics: '[h], glottal breath',
     symbolic: 'Pure breath, fading exhale',
     phenomenological: 'Soft sigh evaporating into air',
@@ -226,7 +226,7 @@ export const arabicLetterMeanings: Record<string, LetterMeaning> = {
   },
   'ي': {
     letter: 'ي',
-    name: 'yā'',
+    name: "yā'",
     phonetics: '[j] or [iː], front glide',
     symbolic: 'Subtlety, descent into detail',
     phenomenological: 'High, bright, needle-fine ray',
