@@ -245,13 +245,16 @@ export default function ImprovedTextBlock() {
 
     console.log(`Found ${results.length} results with ${wordsToHighlight.size} unique words`)
 
-    // Highlight all matching words
+    // Highlight all matching words - need to mark each word individually for Arabic
     const wordsArray = Array.from(wordsToHighlight)
     if (wordsArray.length > 0) {
-      markInstanceRef.current.mark(wordsArray, {
-        separateWordSearch: false,
-        acrossElements: true,
-        className: 'highlight-match'
+      wordsArray.forEach(word => {
+        markInstanceRef.current!.mark(word, {
+          separateWordSearch: false,
+          acrossElements: true,
+          caseSensitive: false,
+          className: 'highlight-match'
+        })
       })
     }
 
