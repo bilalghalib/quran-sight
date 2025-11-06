@@ -829,23 +829,47 @@ export default function ImprovedTextBlock() {
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>
               Custom Search:
             </label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search Arabic text..."
-              style={{
-                padding: isMobile ? '12px' : '8px',
-                width: '100%',
-                border: '1px solid #555',
-                borderRadius: '4px',
-                fontFamily: 'Noto Naskh Arabic, Arial',
-                fontSize: isMobile ? '16px' : '14px',
-                backgroundColor: '#2a2a2a',
-                color: '#fff'
-              }}
-            />
-            {(searchTerm || activeRoot) && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && searchTerm.trim()) {
+                    handleSearch(searchTerm)
+                  }
+                }}
+                placeholder="Search Arabic text..."
+                style={{
+                  padding: isMobile ? '12px' : '8px',
+                  flex: 1,
+                  border: '1px solid #555',
+                  borderRadius: '4px',
+                  fontFamily: 'Noto Naskh Arabic, Arial',
+                  fontSize: isMobile ? '16px' : '14px',
+                  backgroundColor: '#2a2a2a',
+                  color: '#fff'
+                }}
+              />
+              <button
+                onClick={() => searchTerm.trim() && handleSearch(searchTerm)}
+                disabled={!searchTerm.trim()}
+                style={{
+                  padding: isMobile ? '12px 16px' : '8px 16px',
+                  backgroundColor: searchTerm.trim() ? '#4CAF50' : '#555',
+                  color: searchTerm.trim() ? '#fff' : '#888',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: searchTerm.trim() ? 'pointer' : 'not-allowed',
+                  fontSize: isMobile ? '16px' : '14px',
+                  fontWeight: 'bold',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                🔍
+              </button>
+            </div>
+            {(searchResults.length > 0 || activeRoot) && (
               <button
                 onClick={clearSearch}
                 style={{
