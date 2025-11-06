@@ -24,6 +24,8 @@ interface SearchDrawerProps {
   isMobile?: boolean
   isOpen?: boolean
   onClose?: () => void
+  isDesktopCollapsed?: boolean
+  onDesktopToggle?: () => void
 }
 
 // Helper to get pattern description
@@ -51,11 +53,44 @@ function getPatternDescription(pattern: string): string {
   return 'Derived form'
 }
 
-export default function SearchDrawer({ results, onVerseClick, selectedPatterns, onPatternsChange, isMobile = false, isOpen = true, onClose }: SearchDrawerProps) {
+export default function SearchDrawer({ results, onVerseClick, selectedPatterns, onPatternsChange, isMobile = false, isOpen = true, onClose, isDesktopCollapsed = false, onDesktopToggle }: SearchDrawerProps) {
   const [showBreakdown, setShowBreakdown] = useState(true)
 
-  // On mobile, show only when open; on desktop, always show
+  // On mobile, show only when open
   if (isMobile && !isOpen) return null
+
+  // On desktop, show collapsed button when collapsed
+  if (!isMobile && isDesktopCollapsed) {
+    return (
+      <button
+        onClick={onDesktopToggle}
+        title="Show Search Results"
+        style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 10,
+          backgroundColor: 'rgba(42, 42, 42, 0.95)',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          border: '1px solid #444',
+          color: '#fff',
+          cursor: 'pointer',
+          fontSize: '20px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+          transition: 'all 0.2s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(60, 60, 60, 0.95)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(42, 42, 42, 0.95)'
+        }}
+      >
+        ☰
+      </button>
+    )
+  }
 
   // Group results by morphological pattern
   const morphologyBreakdown = results.reduce((acc, result) => {
@@ -129,9 +164,40 @@ export default function SearchDrawer({ results, onVerseClick, selectedPatterns, 
           transition: 'transform 0.3s ease'
         } : {})
       }}>
-      <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
-        Search Results {results.length > 0 && `(${filteredResults.length}${selectedPatterns.size > 0 ? ` of ${results.length}` : ''})`}
-      </h2>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 0,
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ margin: 0, fontSize: '20px' }}>
+          Search Results {results.length > 0 && `(${filteredResults.length}${selectedPatterns.size > 0 ? ` of ${results.length}` : ''})`}
+        </h2>
+        {!isMobile && onDesktopToggle && (
+          <button
+            onClick={onDesktopToggle}
+            title="Hide Search Results"
+            style={{
+              backgroundColor: 'transparent',
+              border: 'none',
+              color: '#999',
+              cursor: 'pointer',
+              fontSize: '18px',
+              padding: '4px 8px',
+              transition: 'color 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#fff'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#999'
+            }}
+          >
+            ▸
+          </button>
+        )}
+      </div>
 
       {/* Morphology Breakdown */}
       {results.length > 0 && sortedPatterns.length > 0 && (

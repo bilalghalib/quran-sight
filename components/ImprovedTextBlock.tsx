@@ -53,6 +53,9 @@ export default function ImprovedTextBlock() {
   const [isSearchDrawerOpen, setIsSearchDrawerOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isControlsOpen, setIsControlsOpen] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Loading Quran data...')
+  const [isDesktopControlsCollapsed, setIsDesktopControlsCollapsed] = useState(false)
+  const [isDesktopSearchCollapsed, setIsDesktopSearchCollapsed] = useState(false)
 
   // Detect mobile viewport
   useEffect(() => {
@@ -97,40 +100,52 @@ export default function ImprovedTextBlock() {
   // Load Quran text with caching
   useEffect(() => {
     setIsLoading(true)
+    setLoadingMessage('Loading Quran data...')
 
     const cached = localStorage.getItem('quran-verses')
     if (cached) {
       try {
+        setLoadingMessage('Loading from cache...')
         const parsedVerses = JSON.parse(cached)
         setVerses(parsedVerses)
         const combined = parsedVerses.map((v: Verse) => v.text).join(' ')
         setFullText(combined)
-        setIsLoading(false)
+        setLoadingMessage('Preparing text display...')
+        setTimeout(() => setIsLoading(false), 300)
         return
       } catch (e) {
         console.error('Cache error:', e)
+        setLoadingMessage('Cache error, fetching fresh data...')
       }
     }
 
+    setLoadingMessage('Fetching Quran text (6,236 verses)...')
     fetch('/quran.txt')
-      .then(response => response.text())
+      .then(response => {
+        setLoadingMessage('Processing verses...')
+        return response.text()
+      })
       .then(text => {
         const lines = text.split('\n').slice(0, 6236).filter(line => line.trim())
+        setLoadingMessage(`Parsing ${lines.length} verses...`)
         const parsedVerses: Verse[] = lines.map((line, index) => ({
           number: index + 1,
           text: line,
           words: line.split(/\s+/).filter(w => w.trim())
         }))
 
+        setLoadingMessage('Caching for faster future loads...')
         localStorage.setItem('quran-verses', JSON.stringify(parsedVerses))
         setVerses(parsedVerses)
         const combined = parsedVerses.map(v => v.text).join(' ')
         setFullText(combined)
-        setIsLoading(false)
+        setLoadingMessage('Ready!')
+        setTimeout(() => setIsLoading(false), 300)
       })
       .catch(error => {
         console.error('Error loading Quranic text:', error)
-        setIsLoading(false)
+        setLoadingMessage('Error loading data. Please refresh.')
+        setTimeout(() => setIsLoading(false), 2000)
       })
   }, [])
 
@@ -138,6 +153,7 @@ export default function ImprovedTextBlock() {
   useEffect(() => {
     if (!isLoading && verses.length > 0 && !activeRoot) {
       // Wait for Mark.js to initialize
+      setLoadingMessage('Highlighting قلب (Heart) occurrences...')
       setTimeout(() => {
         handleRootSearch('qalb')
       }, 500)
@@ -388,34 +404,60 @@ export default function ImprovedTextBlock() {
           box-shadow: 0 0 10px rgba(76, 255, 100, 0.9) !important;
           z-index: 100 !important;
         }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.1); }
+        }
       `}</style>
 
       {/* Mobile Toggle Button for Controls (left side) */}
       {isMobile && (
-        <button
-          onClick={() => setIsControlsOpen(!isControlsOpen)}
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            left: '20px',
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            backgroundColor: '#FF5722',
-            color: '#fff',
-            border: 'none',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
-            zIndex: 1001,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '24px',
-            fontWeight: 'bold'
-          }}
-        >
-          {isControlsOpen ? '✕' : '⚙'}
-        </button>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setIsControlsOpen(!isControlsOpen)}
+            title="Open Controls & Search"
+            aria-label="Toggle Controls Panel"
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              left: '20px',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: '#FF5722',
+              color: '#fff',
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              cursor: 'pointer',
+              zIndex: 1001,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}
+          >
+            {isControlsOpen ? '✕' : '⚙'}
+          </button>
+          {!isControlsOpen && (
+            <div style={{
+              position: 'fixed',
+              bottom: '25px',
+              left: '90px',
+              backgroundColor: 'rgba(0, 0, 0, 0.85)',
+              color: '#fff',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 1000,
+              pointerEvents: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}>
+              Controls & Search
+            </div>
+          )}
+        </div>
       )}
 
       {/* Main Text Area */}
@@ -436,8 +478,39 @@ export default function ImprovedTextBlock() {
           />
         )}
 
+        {/* Desktop Collapsed Controls Button */}
+        {!isMobile && isDesktopControlsCollapsed && (
+          <button
+            onClick={() => setIsDesktopControlsCollapsed(false)}
+            title="Show Controls"
+            style={{
+              position: 'fixed',
+              top: '20px',
+              left: '20px',
+              zIndex: 10,
+              backgroundColor: 'rgba(50, 50, 50, 0.95)',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: '20px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(70, 70, 70, 0.95)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(50, 50, 50, 0.95)'
+            }}
+          >
+            ⚙
+          </button>
+        )}
+
         {/* Controls */}
-        {(!isMobile || isControlsOpen) && (
+        {(!isMobile || isControlsOpen) && !isDesktopControlsCollapsed && (
           <div style={{
             position: 'fixed',
             top: isMobile ? 0 : 20,
@@ -458,9 +531,41 @@ export default function ImprovedTextBlock() {
               bottom: 0
             } : {})
           }}>
-          <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', borderBottom: '1px solid #555', paddingBottom: '10px' }}>
-            Quran Sight
-          </h3>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '15px',
+            borderBottom: '1px solid #555',
+            paddingBottom: '10px'
+          }}>
+            <h3 style={{ margin: 0, fontSize: '16px' }}>
+              Quran Sight
+            </h3>
+            {!isMobile && (
+              <button
+                onClick={() => setIsDesktopControlsCollapsed(true)}
+                title="Hide Controls"
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#999',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  padding: '4px 8px',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#fff'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#999'
+                }}
+              >
+                ◂
+              </button>
+            )}
+          </div>
 
           {/* Settings Toggle Button */}
           <button
@@ -805,10 +910,13 @@ export default function ImprovedTextBlock() {
             color: '#fff',
             fontSize: '18px',
             textAlign: 'center',
-            zIndex: 100
+            zIndex: 100,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            minWidth: '300px'
           }}>
-            <div style={{ marginBottom: '15px', fontSize: '24px' }}>⏳</div>
-            Loading Quran text...
+            <div style={{ marginBottom: '15px', fontSize: '32px', animation: 'pulse 1.5s ease-in-out infinite' }}>📖</div>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Quran Sight</div>
+            <div style={{ fontSize: '15px', color: '#4CAF50' }}>{loadingMessage}</div>
           </div>
         )}
 
@@ -840,30 +948,52 @@ export default function ImprovedTextBlock() {
 
       {/* Mobile Toggle Button for Search Drawer */}
       {isMobile && (
-        <button
-          onClick={() => setIsSearchDrawerOpen(!isSearchDrawerOpen)}
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            backgroundColor: '#4CAF50',
-            color: '#fff',
-            border: 'none',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
-            zIndex: 1001,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '24px',
-            fontWeight: 'bold'
-          }}
-        >
-          {isSearchDrawerOpen ? '✕' : '☰'}
-        </button>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setIsSearchDrawerOpen(!isSearchDrawerOpen)}
+            title="Open Search Results"
+            aria-label="Toggle Search Results Drawer"
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: '#4CAF50',
+              color: '#fff',
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              cursor: 'pointer',
+              zIndex: 1001,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              fontWeight: 'bold'
+            }}
+          >
+            {isSearchDrawerOpen ? '✕' : '☰'}
+          </button>
+          {!isSearchDrawerOpen && searchResults.length > 0 && (
+            <div style={{
+              position: 'fixed',
+              bottom: '25px',
+              right: '90px',
+              backgroundColor: 'rgba(0, 0, 0, 0.85)',
+              color: '#fff',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 1000,
+              pointerEvents: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}>
+              {searchResults.length} Results
+            </div>
+          )}
+        </div>
       )}
 
       {/* Search Results Drawer */}
@@ -875,6 +1005,8 @@ export default function ImprovedTextBlock() {
         isMobile={isMobile}
         isOpen={isSearchDrawerOpen}
         onClose={() => setIsSearchDrawerOpen(false)}
+        isDesktopCollapsed={isDesktopSearchCollapsed}
+        onDesktopToggle={() => setIsDesktopSearchCollapsed(!isDesktopSearchCollapsed)}
       />
 
       {/* Verse Detail Modal */}
