@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { getRootLetterMeanings, type LetterMeaning } from '@/lib/arabicLetterMeanings'
 
 interface SearchResult {
   verseNumber: number
@@ -415,6 +416,80 @@ export default function SearchDrawer({ results, onVerseClick, selectedPatterns, 
                       {result.stemInfo.normalized}
                     </span>
                   </div>
+
+                  {/* Letter Meanings */}
+                  {result.stemInfo.stem.length > 0 && (() => {
+                    const letterMeanings = getRootLetterMeanings(result.stemInfo.stem[0])
+                    if (letterMeanings.length > 0) {
+                      return (
+                        <div style={{
+                          marginTop: '10px',
+                          paddingTop: '10px',
+                          borderTop: '1px solid rgba(76, 175, 80, 0.3)'
+                        }}>
+                          <div style={{
+                            fontSize: '11px',
+                            color: '#aaa',
+                            marginBottom: '8px',
+                            fontWeight: 'bold'
+                          }}>
+                            Letter Meanings:
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {letterMeanings.map((letterMeaning, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  display: 'flex',
+                                  gap: '10px',
+                                  alignItems: 'flex-start',
+                                  padding: '8px',
+                                  backgroundColor: 'rgba(76, 175, 80, 0.05)',
+                                  borderRadius: '4px'
+                                }}
+                              >
+                                <span style={{
+                                  fontFamily: 'Noto Naskh Arabic, Arial',
+                                  fontSize: '18px',
+                                  fontWeight: 'bold',
+                                  color: '#4CAF50',
+                                  minWidth: '25px',
+                                  textAlign: 'center'
+                                }}>
+                                  {letterMeaning.letter}
+                                </span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{
+                                    fontSize: '11px',
+                                    color: '#4CAF50',
+                                    fontWeight: 'bold',
+                                    marginBottom: '3px'
+                                  }}>
+                                    {letterMeaning.name}
+                                  </div>
+                                  <div style={{
+                                    fontSize: '11px',
+                                    color: '#bbb',
+                                    marginBottom: '2px'
+                                  }}>
+                                    {letterMeaning.integrated}
+                                  </div>
+                                  <div style={{
+                                    fontSize: '10px',
+                                    color: '#888',
+                                    fontStyle: 'italic'
+                                  }}>
+                                    {letterMeaning.symbolic}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
 
                   <div style={{
                     fontSize: '10px',
