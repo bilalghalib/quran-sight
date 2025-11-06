@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import Mark from 'mark.js'
 import { rootPatterns, RootKey, presetSearches, matchesRoot, matchesRootWithForm } from '@/lib/arabicRoots'
+import Stemmer, { type StemResult } from '@/lib/Stemmer'
 import SearchDrawer from './SearchDrawer'
 import VerseDetail from './VerseDetail'
 
@@ -23,6 +24,11 @@ interface SearchResult {
     meaning: string | null
     isTheoretical: boolean
     notes?: string
+  }
+  stemInfo?: {
+    stem: string[]
+    normalized: string
+    searchedWord: string
   }
 }
 
@@ -178,7 +184,7 @@ export default function ImprovedTextBlock() {
     setHeatmapData(bins)
   }
 
-  // Handle search with Mark.js highlighting
+  // Handle search with Mark.js highlighting and stemming
   const handleSearch = (term: string) => {
     setSearchTerm(term)
     setActiveRoot(null)
@@ -193,33 +199,64 @@ export default function ImprovedTextBlock() {
       return
     }
 
-    markInstanceRef.current.mark(term, {
-      separateWordSearch: false,
-      acrossElements: true,
-      caseSensitive: false,
-      className: 'highlight-match',
-      done: () => {
-        const results: SearchResult[] = []
-        verses.forEach((verse) => {
-          verse.words.forEach((word, wordIndex) => {
-            if (word.includes(term)) {
-              const start = Math.max(0, wordIndex - 3)
-              const end = Math.min(verse.words.length, wordIndex + 4)
-              const context = verse.words.slice(start, end).join(' ')
+    // Use stemmer to find root
+    const stemmer = new Stemmer()
+    const stemResult = stemmer.stem(term)
+    const searchStems = typeof stemResult === 'string' ? [stemResult] : stemResult.stem
+    const normalized = typeof stemResult === 'string' ? stemResult : stemResult.normalized
 
-              results.push({
-                verseNumber: verse.number,
-                verse: verse.text,
-                wordIndex,
-                context
-              })
+    console.log('Search term:', term)
+    console.log('Stems found:', searchStems)
+    console.log('Normalized:', normalized)
+
+    // Collect all words that match the stems
+    const wordsToHighlight = new Set<string>()
+    const results: SearchResult[] = []
+
+    verses.forEach((verse) => {
+      verse.words.forEach((word, wordIndex) => {
+        // Check if this word shares a stem with the search term
+        const wordStemResult = stemmer.stem(word)
+        const wordStems = typeof wordStemResult === 'string' ? [wordStemResult] : wordStemResult.stem
+
+        // Check if any word stems match any search stems
+        const hasCommonStem = wordStems.some(ws => searchStems.includes(ws))
+
+        if (hasCommonStem || word.includes(term)) {
+          wordsToHighlight.add(word)
+          const start = Math.max(0, wordIndex - 3)
+          const end = Math.min(verse.words.length, wordIndex + 4)
+          const context = verse.words.slice(start, end).join(' ')
+
+          results.push({
+            verseNumber: verse.number,
+            verse: verse.text,
+            wordIndex,
+            context,
+            stemInfo: {
+              stem: searchStems,
+              normalized: normalized,
+              searchedWord: word
             }
           })
-        })
-        setSearchResults(results)
-        generateHeatmap(results)
-      }
+        }
+      })
     })
+
+    console.log(`Found ${results.length} results with ${wordsToHighlight.size} unique words`)
+
+    // Highlight all matching words
+    const wordsArray = Array.from(wordsToHighlight)
+    if (wordsArray.length > 0) {
+      markInstanceRef.current.mark(wordsArray, {
+        separateWordSearch: false,
+        acrossElements: true,
+        className: 'highlight-match'
+      })
+    }
+
+    setSearchResults(results)
+    generateHeatmap(results)
   }
 
   // Handle root-based search with morphological form tracking

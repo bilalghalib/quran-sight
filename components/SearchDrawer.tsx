@@ -14,6 +14,11 @@ interface SearchResult {
     isTheoretical: boolean
     notes?: string
   }
+  stemInfo?: {
+    stem: string[]
+    normalized: string
+    searchedWord: string
+  }
 }
 
 interface SearchDrawerProps {
@@ -353,10 +358,74 @@ export default function SearchDrawer({ results, onVerseClick, selectedPatterns, 
                 lineHeight: '1.8',
                 direction: 'rtl',
                 textAlign: 'right',
-                marginBottom: result.matchedForm ? '12px' : '0'
+                marginBottom: (result.matchedForm || result.stemInfo) ? '12px' : '0'
               }}>
                 ...{result.context}...
               </div>
+
+              {/* Stem Information from Custom Search */}
+              {result.stemInfo && !result.matchedForm && (
+                <div style={{
+                  marginTop: '10px',
+                  padding: '10px',
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  borderRadius: '6px',
+                  borderLeft: '3px solid rgba(76, 175, 80, 0.6)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '6px'
+                  }}>
+                    <span style={{
+                      fontFamily: 'Noto Naskh Arabic, Arial',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      color: '#4CAF50'
+                    }}>
+                      {result.stemInfo.searchedWord}
+                    </span>
+                  </div>
+
+                  <div style={{
+                    fontSize: '11px',
+                    color: '#aaa',
+                    marginBottom: '4px'
+                  }}>
+                    Tri-Root (جذر): <span style={{
+                      fontFamily: 'Noto Naskh Arabic, Arial',
+                      fontSize: '13px',
+                      color: '#4CAF50',
+                      fontWeight: 'bold'
+                    }}>
+                      {result.stemInfo.stem.join(' / ')}
+                    </span>
+                  </div>
+
+                  <div style={{
+                    fontSize: '11px',
+                    color: '#888'
+                  }}>
+                    Normalized: <span style={{
+                      fontFamily: 'Noto Naskh Arabic, Arial',
+                      fontSize: '12px',
+                      color: '#ccc'
+                    }}>
+                      {result.stemInfo.normalized}
+                    </span>
+                  </div>
+
+                  <div style={{
+                    fontSize: '10px',
+                    color: '#777',
+                    marginTop: '6px',
+                    fontStyle: 'italic'
+                  }}>
+                    Matches words with common root
+                  </div>
+                </div>
+              )}
 
               {/* Morphological Form Insights */}
               {result.matchedForm && (
