@@ -281,7 +281,7 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
             <div style={{ marginBottom: '2px', fontSize: '12px', opacity: 0.9 }}>
               {hoveredWord.transliteration?.text}
             </div>
-            <div>{hoveredWord.translation.text}</div>
+            <div>{hoveredWord.translation.text.replace(/<sup[^>]*>.*?<\/sup>/gi, '').replace(/<[^>]+>/g, '')}</div>
           </div>
         )}
 
@@ -320,7 +320,7 @@ export default function VerseDetail({ verse, onClose, highlightWord, activeRoot 
                   lineHeight: '1.7',
                   color: '#ddd'
                 }}>
-                  {translation.text}
+                  {translation.text.replace(/<sup[^>]*>.*?<\/sup>/gi, '').replace(/<[^>]+>/g, '')}
                 </div>
               </div>
             ))}

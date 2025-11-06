@@ -914,16 +914,32 @@ export default function ImprovedTextBlock() {
                 onClick={clearSearch}
                 style={{
                   width: '100%',
-                  padding: '6px',
-                  marginTop: '8px',
+                  padding: isMobile ? '12px' : '10px',
+                  marginTop: '10px',
                   backgroundColor: '#d32f2f',
                   color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
+                  border: '2px solid #ff5252',
+                  borderRadius: '6px',
                   cursor: 'pointer',
-                  fontSize: '12px'
+                  fontSize: isMobile ? '14px' : '13px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#b71c1c'
+                  e.currentTarget.style.transform = 'scale(1.02)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#d32f2f'
+                  e.currentTarget.style.transform = 'scale(1)'
                 }}
               >
+                <span style={{ fontSize: '16px' }}>✕</span>
                 Clear Search
               </button>
             )}
