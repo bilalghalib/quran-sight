@@ -30,6 +30,7 @@ export default function TextBlockVisualization() {
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null)
   const [highlightedWords, setHighlightedWords] = useState<Set<string>>(new Set())
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 })
+  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
 
   // Load and parse Quran text
   useEffect(() => {
@@ -250,6 +251,8 @@ export default function TextBlockVisualization() {
       <SearchDrawer
         results={searchResults}
         onVerseClick={handleVerseClick}
+        selectedPatterns={selectedPatterns}
+        onPatternsChange={setSelectedPatterns}
       />
 
       {/* Verse Detail Modal */}

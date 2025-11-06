@@ -34,6 +34,7 @@ export default function FastTextBlock() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeRoot, setActiveRoot] = useState<RootKey | null>(null)
   const [highlightedWordIndices, setHighlightedWordIndices] = useState<Set<string>>(new Set())
+  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
 
   // Load Quran text with caching
   useEffect(() => {
@@ -427,6 +428,8 @@ export default function FastTextBlock() {
       <SearchDrawer
         results={searchResults}
         onVerseClick={handleVerseClick}
+        selectedPatterns={selectedPatterns}
+        onPatternsChange={setSelectedPatterns}
       />
 
       {/* Verse Detail Modal */}

@@ -36,6 +36,7 @@ export default function OptimizedTextBlock() {
   const [padding, setPadding] = useState(20)
   const [isLoading, setIsLoading] = useState(true)
   const [activeRoot, setActiveRoot] = useState<RootKey | null>(null)
+  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
 
   // Initialize Mark.js instance
   useEffect(() => {
@@ -465,6 +466,8 @@ export default function OptimizedTextBlock() {
       <SearchDrawer
         results={searchResults}
         onVerseClick={handleVerseClick}
+        selectedPatterns={selectedPatterns}
+        onPatternsChange={setSelectedPatterns}
       />
 
       {/* Verse Detail Modal */}

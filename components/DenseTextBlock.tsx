@@ -38,6 +38,7 @@ export default function DenseTextBlock() {
   const [padding, setPadding] = useState(20)
   const [isLoading, setIsLoading] = useState(true)
   const [activeRoot, setActiveRoot] = useState<RootKey | null>(null)
+  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set())
 
   // Load Quran text with optimization
   useEffect(() => {
@@ -466,6 +467,8 @@ export default function DenseTextBlock() {
       <SearchDrawer
         results={searchResults}
         onVerseClick={handleVerseClick}
+        selectedPatterns={selectedPatterns}
+        onPatternsChange={setSelectedPatterns}
       />
 
       {/* Verse Detail Modal */}
