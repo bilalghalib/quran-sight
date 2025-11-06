@@ -531,21 +531,30 @@ export default function ImprovedTextBlock() {
               backgroundColor: 'rgba(50, 50, 50, 0.95)',
               padding: '12px 16px',
               borderRadius: '8px',
-              border: 'none',
-              color: '#fff',
+              border: '1px solid #666',
+              color: '#ddd',
               cursor: 'pointer',
-              fontSize: '20px',
+              fontSize: '14px',
+              fontWeight: 'bold',
               boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(70, 70, 70, 0.95)'
+              e.currentTarget.style.color = '#fff'
+              e.currentTarget.style.borderColor = '#888'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(50, 50, 50, 0.95)'
+              e.currentTarget.style.color = '#ddd'
+              e.currentTarget.style.borderColor = '#666'
             }}
           >
-            ⚙
+            <span style={{ fontSize: '18px' }}>▸</span>
+            Show
           </button>
         )}
 
@@ -587,128 +596,35 @@ export default function ImprovedTextBlock() {
                 onClick={() => setIsDesktopControlsCollapsed(true)}
                 title="Hide Controls"
                 style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#999',
+                  backgroundColor: '#444',
+                  border: '1px solid #666',
+                  color: '#ddd',
                   cursor: 'pointer',
-                  fontSize: '18px',
-                  padding: '4px 8px',
-                  transition: 'color 0.2s ease'
+                  fontSize: '13px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s ease',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
                 onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#555'
                   e.currentTarget.style.color = '#fff'
+                  e.currentTarget.style.borderColor = '#888'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#999'
+                  e.currentTarget.style.backgroundColor = '#444'
+                  e.currentTarget.style.color = '#ddd'
+                  e.currentTarget.style.borderColor = '#666'
                 }}
               >
                 ◂
+                <span>Hide</span>
               </button>
             )}
           </div>
-
-          {/* Settings Toggle Button */}
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            style={{
-              width: '100%',
-              padding: '10px',
-              backgroundColor: '#555',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              marginBottom: '15px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <span>⚙️ Settings</span>
-            <span>{showSettings ? '▼' : '▶'}</span>
-          </button>
-
-          {/* Collapsible Settings Section */}
-          {showSettings && (
-            <div style={{ marginBottom: '15px', borderBottom: '1px solid #555', paddingBottom: '15px' }}>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
-                  Zoom: {zoom.toFixed(1)}x
-                </label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="3"
-                  step="0.1"
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
-                  Font Size: {fontSize}px
-                </label>
-                <input
-                  type="range"
-                  min="2"
-                  max="16"
-                  step="0.5"
-                  value={fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
-                  Line Height: {lineHeight.toFixed(2)}
-                </label>
-                <input
-                  type="range"
-                  min="0.8"
-                  max="2"
-                  step="0.05"
-                  value={lineHeight}
-                  onChange={(e) => setLineHeight(Number(e.target.value))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
-                  Letter Spacing: {letterSpacing.toFixed(1)}px
-                </label>
-                <input
-                  type="range"
-                  min="-2"
-                  max="3"
-                  step="0.5"
-                  value={letterSpacing}
-                  onChange={(e) => setLetterSpacing(Number(e.target.value))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <button
-                onClick={invertColors}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  backgroundColor: '#4CAF50',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                Invert Colors
-              </button>
-            </div>
-          )}
 
           {/* Heatmap/Minimap */}
           {heatmapData.length > 0 && (
@@ -942,6 +858,111 @@ export default function ImprovedTextBlock() {
                 <span style={{ fontSize: '16px' }}>✕</span>
                 Clear Search
               </button>
+            )}
+          </div>
+
+          {/* Settings Toggle Button */}
+          <div style={{ borderTop: '1px solid #555', paddingTop: '15px', marginTop: '15px' }}>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                backgroundColor: '#555',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <span>⚙️ Settings</span>
+              <span>{showSettings ? '▼' : '▶'}</span>
+            </button>
+
+            {/* Collapsible Settings Section */}
+            {showSettings && (
+              <div style={{ marginBottom: '15px', paddingBottom: '15px' }}>
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
+                    Zoom: {zoom.toFixed(1)}x
+                  </label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="3"
+                    step="0.1"
+                    value={zoom}
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
+                    Font Size: {fontSize}px
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="16"
+                    step="0.5"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
+                    Line Height: {lineHeight.toFixed(2)}
+                  </label>
+                  <input
+                    type="range"
+                    min="0.8"
+                    max="2"
+                    step="0.05"
+                    value={lineHeight}
+                    onChange={(e) => setLineHeight(Number(e.target.value))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold' }}>
+                    Letter Spacing: {letterSpacing.toFixed(1)}px
+                  </label>
+                  <input
+                    type="range"
+                    min="-2"
+                    max="3"
+                    step="0.5"
+                    value={letterSpacing}
+                    onChange={(e) => setLetterSpacing(Number(e.target.value))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <button
+                  onClick={invertColors}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Invert Colors
+                </button>
+              </div>
             )}
           </div>
 

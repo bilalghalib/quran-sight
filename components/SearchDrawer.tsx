@@ -79,21 +79,30 @@ export default function SearchDrawer({ results, onVerseClick, selectedPatterns, 
           backgroundColor: 'rgba(42, 42, 42, 0.95)',
           padding: '12px 16px',
           borderRadius: '8px',
-          border: '1px solid #444',
-          color: '#fff',
+          border: '1px solid #666',
+          color: '#ddd',
           cursor: 'pointer',
-          fontSize: '20px',
+          fontSize: '14px',
+          fontWeight: 'bold',
           boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.2s ease',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = 'rgba(60, 60, 60, 0.95)'
+          e.currentTarget.style.color = '#fff'
+          e.currentTarget.style.borderColor = '#888'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = 'rgba(42, 42, 42, 0.95)'
+          e.currentTarget.style.color = '#ddd'
+          e.currentTarget.style.borderColor = '#666'
         }}
       >
-        ☰
+        <span style={{ fontSize: '18px' }}>◂</span>
+        Show
       </button>
     )
   }
@@ -185,22 +194,32 @@ export default function SearchDrawer({ results, onVerseClick, selectedPatterns, 
             onClick={onDesktopToggle}
             title="Hide Search Results"
             style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              color: '#999',
+              backgroundColor: '#444',
+              border: '1px solid #666',
+              color: '#ddd',
               cursor: 'pointer',
-              fontSize: '18px',
-              padding: '4px 8px',
-              transition: 'color 0.2s ease'
+              fontSize: '13px',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              transition: 'all 0.2s ease',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
             onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#555'
               e.currentTarget.style.color = '#fff'
+              e.currentTarget.style.borderColor = '#888'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#999'
+              e.currentTarget.style.backgroundColor = '#444'
+              e.currentTarget.style.color = '#ddd'
+              e.currentTarget.style.borderColor = '#666'
             }}
           >
-            ▸
+            <span style={{ fontSize: '16px' }}>▸</span>
+            Hide
           </button>
         )}
       </div>
