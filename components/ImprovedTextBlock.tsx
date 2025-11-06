@@ -520,7 +520,16 @@ export default function ImprovedTextBlock() {
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>
                 Distribution Heatmap:
               </label>
-              <div style={{ display: 'flex', height: '50px', gap: '1px', backgroundColor: '#1a1a1a', padding: '8px', borderRadius: '6px', border: '1px solid #333', position: 'relative' }}>
+              <div style={{
+                display: 'flex',
+                height: isMobile ? '60px' : '50px',
+                gap: '1px',
+                backgroundColor: '#1a1a1a',
+                padding: '8px',
+                borderRadius: '6px',
+                border: '1px solid #333',
+                position: 'relative'
+              }}>
                 {heatmapData.map((count, index) => {
                   const startVerse = Math.floor(index * 62.36) + 1
                   const endVerse = Math.floor((index + 1) * 62.36)
@@ -585,7 +594,14 @@ export default function ImprovedTextBlock() {
                   )
                 })}
               </div>
-              <div style={{ fontSize: '11px', color: '#999', marginTop: '5px', textAlign: 'center' }}>
+              <div style={{
+                fontSize: '11px',
+                color: '#ccc',
+                marginTop: '8px',
+                textAlign: 'center',
+                fontWeight: '500',
+                letterSpacing: '0.5px'
+              }}>
                 ← Beginning | Quran | End →
               </div>
             </div>
@@ -601,16 +617,18 @@ export default function ImprovedTextBlock() {
                   key={preset.key}
                   onClick={() => handleRootSearch(preset.key)}
                   style={{
-                    padding: '6px 8px',
-                    fontSize: '11px',
+                    padding: isMobile ? '10px 8px' : '6px 8px',
+                    fontSize: isMobile ? '12px' : '11px',
                     backgroundColor: activeRoot === preset.key ? '#4CAF50' : '#444',
                     color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
+                    border: activeRoot === preset.key ? '2px solid #81C784' : '2px solid transparent',
+                    borderRadius: '6px',
                     cursor: 'pointer',
                     flex: '1 1 calc(50% - 3px)',
                     minWidth: '0',
-                    lineHeight: '1.3'
+                    lineHeight: '1.3',
+                    boxShadow: activeRoot === preset.key ? '0 0 8px rgba(76, 175, 80, 0.6)' : 'none',
+                    transition: 'all 0.2s ease'
                   }}
                   title={preset.label}
                 >
@@ -627,16 +645,18 @@ export default function ImprovedTextBlock() {
                   key={preset.key}
                   onClick={() => handleRootSearch(preset.key)}
                   style={{
-                    padding: '6px 8px',
-                    fontSize: '11px',
+                    padding: isMobile ? '10px 8px' : '6px 8px',
+                    fontSize: isMobile ? '12px' : '11px',
                     backgroundColor: activeRoot === preset.key ? '#4CAF50' : '#444',
                     color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
+                    border: activeRoot === preset.key ? '2px solid #81C784' : '2px solid transparent',
+                    borderRadius: '6px',
                     cursor: 'pointer',
                     flex: '1 1 calc(50% - 3px)',
                     minWidth: '0',
-                    lineHeight: '1.3'
+                    lineHeight: '1.3',
+                    boxShadow: activeRoot === preset.key ? '0 0 8px rgba(76, 175, 80, 0.6)' : 'none',
+                    transition: 'all 0.2s ease'
                   }}
                   title={preset.label}
                 >
@@ -659,11 +679,12 @@ export default function ImprovedTextBlock() {
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Search Arabic text..."
               style={{
-                padding: '8px',
+                padding: isMobile ? '12px' : '8px',
                 width: '100%',
                 border: '1px solid #555',
                 borderRadius: '4px',
                 fontFamily: 'Noto Naskh Arabic, Arial',
+                fontSize: isMobile ? '16px' : '14px',
                 backgroundColor: '#2a2a2a',
                 color: '#fff'
               }}
@@ -688,16 +709,31 @@ export default function ImprovedTextBlock() {
             )}
           </div>
 
-          <div style={{ marginTop: '15px', fontSize: '11px', color: '#999', borderTop: '1px solid #555', paddingTop: '10px' }}>
-            <strong>Verses:</strong> {verses.length}<br />
-            <strong>Characters:</strong> {fullText.length.toLocaleString()}<br />
+          <div style={{ marginTop: '15px', fontSize: '11px', borderTop: '1px solid #555', paddingTop: '10px' }}>
+            <div style={{ color: '#999', marginBottom: '4px' }}>
+              <strong>Verses:</strong> {verses.length}
+            </div>
+            <div style={{ color: '#999', marginBottom: searchResults.length > 0 ? '8px' : '0' }}>
+              <strong>Characters:</strong> {fullText.length.toLocaleString()}
+            </div>
             {searchResults.length > 0 && (
               <>
-                <strong style={{ color: '#4CAF50' }}>Found:</strong> {searchResults.length} matches<br />
+                <div style={{
+                  color: '#4CAF50',
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  marginBottom: '4px',
+                  padding: '4px 6px',
+                  backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                  borderRadius: '4px',
+                  borderLeft: '3px solid #4CAF50'
+                }}>
+                  Found: {searchResults.length} matches
+                </div>
                 {activeRoot && (
-                  <strong style={{ color: '#4CAF50' }}>
-                    Root: {rootPatterns[activeRoot].concept}
-                  </strong>
+                  <div style={{ color: '#64b4ff', marginTop: '4px' }}>
+                    <strong>Root: {rootPatterns[activeRoot].concept}</strong>
+                  </div>
                 )}
               </>
             )}
