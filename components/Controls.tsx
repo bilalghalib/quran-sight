@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { SpiralType, RoseSettings, TrochoidSettings, AnimationSettings } from './types'
+import { SpiralType, RoseSettings, TrochoidSettings, AnimationSettings, Preset } from './types'
 import styles from './Controls.module.css'
 
 interface ControlsProps {
@@ -19,7 +19,11 @@ interface ControlsProps {
   setAbjadWordTotalEnabled: (enabled: boolean) => void
   highlightWord: string
   setHighlightWord: (word: string) => void
+  rootSearch: string
+  setRootSearch: (root: string) => void
   onSearch: () => void
+  onSearchRoot: () => void
+  onClearSearches: () => void
   onZoomIn: () => void
   onZoomOut: () => void
   onSaveSVG: () => void
@@ -33,6 +37,10 @@ interface ControlsProps {
   spiralDensityAnimationRef: React.MutableRefObject<NodeJS.Timeout | null>
   onFontSizeChange: (value: number) => void
   onSpiralDensityChange: (value: number) => void
+  savedPresets: Preset[]
+  onSavePreset: (name: string) => void
+  onLoadPreset: (preset: Preset) => void
+  onDeletePreset: (index: number) => void
 }
 
 export default function Controls({
@@ -50,7 +58,11 @@ export default function Controls({
   setAbjadWordTotalEnabled,
   highlightWord,
   setHighlightWord,
+  rootSearch,
+  setRootSearch,
   onSearch,
+  onSearchRoot,
+  onClearSearches,
   onZoomIn,
   onZoomOut,
   onSaveSVG,
@@ -64,8 +76,13 @@ export default function Controls({
   spiralDensityAnimationRef,
   onFontSizeChange,
   onSpiralDensityChange,
+  savedPresets,
+  onSavePreset,
+  onLoadPreset,
+  onDeletePreset,
 }: ControlsProps) {
   const [openDrawers, setOpenDrawers] = useState<Set<string>>(new Set(['spiral']))
+  const [newPresetName, setNewPresetName] = useState('')
 
   const toggleDrawer = (drawer: string) => {
     setOpenDrawers(prev => {
@@ -446,14 +463,89 @@ export default function Controls({
         <h3 onClick={() => toggleDrawer('search')}>Search Settings</h3>
         {openDrawers.has('search') && (
           <div className={styles.drawerContent}>
-            <label htmlFor="highlightWord">Highlight Word:</label>
+            <label htmlFor="highlightWord">Exact Word (red):</label>
             <input
               type="text"
               id="highlightWord"
               value={highlightWord}
               onChange={(e) => setHighlightWord(e.target.value)}
+              placeholder="الله"
             />
             <button onClick={onSearch}>Search</button>
+
+            <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #ccc' }}>
+              <label htmlFor="rootSearch">Root Letters (blue):</label>
+              <input
+                type="text"
+                id="rootSearch"
+                value={rootSearch}
+                onChange={(e) => setRootSearch(e.target.value)}
+                placeholder="كتب"
+              />
+              <button onClick={onSearchRoot}>Find Root</button>
+            </div>
+
+            <button
+              onClick={onClearSearches}
+              style={{ marginTop: '10px', width: '100%' }}
+            >
+              Clear All Highlights
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Presets */}
+      <div className={styles.drawer}>
+        <h3 onClick={() => toggleDrawer('presets')}>Saved Presets</h3>
+        {openDrawers.has('presets') && (
+          <div className={styles.drawerContent}>
+            <div style={{ marginBottom: '10px' }}>
+              <label htmlFor="presetName">Save Current:</label>
+              <input
+                type="text"
+                id="presetName"
+                placeholder="Preset name..."
+                value={newPresetName}
+                onChange={(e) => setNewPresetName(e.target.value)}
+              />
+              <button
+                onClick={() => {
+                  if (newPresetName.trim()) {
+                    onSavePreset(newPresetName.trim())
+                    setNewPresetName('')
+                  }
+                }}
+              >
+                Save
+              </button>
+            </div>
+
+            {savedPresets.length > 0 && (
+              <div>
+                <label>Load Preset:</label>
+                {savedPresets.map((preset, index) => (
+                  <div key={index} style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                    <button
+                      onClick={() => onLoadPreset(preset)}
+                      style={{ flex: 1 }}
+                    >
+                      {preset.name}
+                    </button>
+                    <button
+                      onClick={() => onDeletePreset(index)}
+                      style={{ width: '30px' }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {savedPresets.length === 0 && (
+              <p style={{ fontSize: '0.9em', opacity: 0.7 }}>No saved presets yet</p>
+            )}
           </div>
         )}
       </div>

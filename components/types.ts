@@ -35,3 +35,16 @@ export interface AnimationSettings {
   spiralDensityStep: number
   spiralDensitySpeed: number
 }
+
+export interface Preset {
+  name: string
+  spiralType: SpiralType
+  fontSize: number
+  spiralDensity: number
+  abjadColorEnabled: boolean
+  abjadSizeEnabled: boolean
+  abjadWordTotalEnabled: boolean
+  roseSettings: RoseSettings
+  trochoidSettings: TrochoidSettings
+  zoomLevel: number
+}

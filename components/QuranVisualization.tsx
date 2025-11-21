@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { SpiralType, RoseSettings, TrochoidSettings, AnimationSettings } from './types'
-import { getAbjadValue, getColorByAbjadValue, cleanupHarakat } from './utils'
+import { SpiralType, RoseSettings, TrochoidSettings, AnimationSettings, Preset } from './types'
+import { getAbjadValue, getColorByAbjadValue, cleanupHarakat, containsRoot } from './utils'
 import Controls from './Controls'
 import styles from './QuranVisualization.module.css'
 
@@ -17,6 +17,8 @@ export default function QuranVisualization() {
   const [abjadWordTotalEnabled, setAbjadWordTotalEnabled] = useState(false)
   const [highlightWord, setHighlightWord] = useState('الله')
   const [currentHighlightWord, setCurrentHighlightWord] = useState('')
+  const [rootSearch, setRootSearch] = useState('')
+  const [currentRootSearch, setCurrentRootSearch] = useState('')
   const [zoomLevel, setZoomLevel] = useState(1)
   const fontSizeAnimationRef = useRef<NodeJS.Timeout | null>(null)
   const spiralDensityAnimationRef = useRef<NodeJS.Timeout | null>(null)
@@ -48,6 +50,132 @@ export default function QuranVisualization() {
     spiralDensitySpeed: 50,
   })
 
+  // Preset management
+  const [savedPresets, setSavedPresets] = useState<Preset[]>([])
+
+  // History management for undo/redo
+  const [history, setHistory] = useState<Preset[]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  const isApplyingHistory = useRef(false)
+
+  // Load presets from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('quran-sight-presets')
+    if (stored) {
+      setSavedPresets(JSON.parse(stored))
+    }
+  }, [])
+
+  function savePreset(name: string) {
+    const preset: Preset = {
+      name,
+      spiralType,
+      fontSize,
+      spiralDensity,
+      abjadColorEnabled,
+      abjadSizeEnabled,
+      abjadWordTotalEnabled,
+      roseSettings,
+      trochoidSettings,
+      zoomLevel,
+    }
+    const newPresets = [...savedPresets, preset]
+    setSavedPresets(newPresets)
+    localStorage.setItem('quran-sight-presets', JSON.stringify(newPresets))
+  }
+
+  function loadPreset(preset: Preset) {
+    setSpiralType(preset.spiralType)
+    setFontSize(preset.fontSize)
+    setSpiralDensity(preset.spiralDensity)
+    setAbjadColorEnabled(preset.abjadColorEnabled)
+    setAbjadSizeEnabled(preset.abjadSizeEnabled)
+    setAbjadWordTotalEnabled(preset.abjadWordTotalEnabled)
+    setRoseSettings(preset.roseSettings)
+    setTrochoidSettings(preset.trochoidSettings)
+    setZoomLevel(preset.zoomLevel)
+  }
+
+  function deletePreset(index: number) {
+    const newPresets = savedPresets.filter((_, i) => i !== index)
+    setSavedPresets(newPresets)
+    localStorage.setItem('quran-sight-presets', JSON.stringify(newPresets))
+  }
+
+  // History functions for undo/redo
+  function saveToHistory() {
+    if (isApplyingHistory.current) return
+
+    const snapshot: Preset = {
+      name: 'history',
+      spiralType,
+      fontSize,
+      spiralDensity,
+      abjadColorEnabled,
+      abjadSizeEnabled,
+      abjadWordTotalEnabled,
+      roseSettings,
+      trochoidSettings,
+      zoomLevel,
+    }
+
+    // Remove any future history if we're not at the end
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(snapshot)
+
+    // Keep only last 50 states
+    if (newHistory.length > 50) {
+      newHistory.shift()
+    } else {
+      setHistoryIndex(historyIndex + 1)
+    }
+
+    setHistory(newHistory)
+  }
+
+  function undo() {
+    if (historyIndex > 0) {
+      isApplyingHistory.current = true
+      const prevState = history[historyIndex - 1]
+      loadPreset(prevState)
+      setHistoryIndex(historyIndex - 1)
+      setTimeout(() => { isApplyingHistory.current = false }, 100)
+    }
+  }
+
+  function redo() {
+    if (historyIndex < history.length - 1) {
+      isApplyingHistory.current = true
+      const nextState = history[historyIndex + 1]
+      loadPreset(nextState)
+      setHistoryIndex(historyIndex + 1)
+      setTimeout(() => { isApplyingHistory.current = false }, 100)
+    }
+  }
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
+        e.preventDefault()
+        redo()
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        undo()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [historyIndex, history])
+
+  // Track parameter changes for history
+  useEffect(() => {
+    if (quranText) { // Only start tracking after text is loaded
+      saveToHistory()
+    }
+  }, [spiralType, fontSize, spiralDensity, abjadColorEnabled, abjadSizeEnabled, abjadWordTotalEnabled, zoomLevel, roseSettings, trochoidSettings])
+
   // Load Quran text
   useEffect(() => {
     fetch('/quran.txt')
@@ -55,7 +183,7 @@ export default function QuranVisualization() {
       .then(text => {
         const quranLines = text.split('\n').slice(0, 6236)
         const fullText = quranLines.join('\n')
-        setQuranText(fullText.slice(0, 10000)) // Limit to 10,000 characters
+        setQuranText(fullText) // Full Quran - all 6236 verses!
       })
       .catch(error => {
         console.error('Error loading Quranic text:', error)
@@ -76,6 +204,7 @@ export default function QuranVisualization() {
     abjadSizeEnabled,
     abjadWordTotalEnabled,
     currentHighlightWord,
+    currentRootSearch,
     zoomLevel,
     roseSettings,
     trochoidSettings,
@@ -165,9 +294,12 @@ export default function QuranVisualization() {
       ctx.rotate(angle + Math.PI / 2)
 
       const searchWord = cleanupHarakat(word)
-      if (searchWord === currentHighlightWord) {
+      const isWordMatch = searchWord === currentHighlightWord
+      const isRootMatch = currentRootSearch && containsRoot(word, currentRootSearch)
+
+      if (isWordMatch || isRootMatch) {
         ctx.font = `bold ${fontSize + 1}px "Noto Naskh Arabic"`
-        ctx.fillStyle = 'red'
+        ctx.fillStyle = isRootMatch ? 'blue' : 'red'
         ctx.fillText(word, 0, 0)
       } else {
         const abjadValue = getAbjadValue(word, abjadWordTotalEnabled)
@@ -195,6 +327,15 @@ export default function QuranVisualization() {
 
   function searchAndHighlight() {
     setCurrentHighlightWord(cleanupHarakat(highlightWord))
+  }
+
+  function searchRoot() {
+    setCurrentRootSearch(rootSearch)
+  }
+
+  function clearSearches() {
+    setCurrentHighlightWord('')
+    setCurrentRootSearch('')
   }
 
   function zoomIn() {
@@ -312,7 +453,11 @@ export default function QuranVisualization() {
         setAbjadWordTotalEnabled={setAbjadWordTotalEnabled}
         highlightWord={highlightWord}
         setHighlightWord={setHighlightWord}
+        rootSearch={rootSearch}
+        setRootSearch={setRootSearch}
         onSearch={searchAndHighlight}
+        onSearchRoot={searchRoot}
+        onClearSearches={clearSearches}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onSaveSVG={saveSVG}
@@ -326,6 +471,10 @@ export default function QuranVisualization() {
         spiralDensityAnimationRef={spiralDensityAnimationRef}
         onFontSizeChange={(value) => setFontSize(value)}
         onSpiralDensityChange={(value) => setSpiralDensity(value)}
+        savedPresets={savedPresets}
+        onSavePreset={savePreset}
+        onLoadPreset={loadPreset}
+        onDeletePreset={deletePreset}
       />
     </div>
   )

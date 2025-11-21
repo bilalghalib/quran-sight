@@ -27,3 +27,19 @@ export function cleanupHarakat(str: string): string {
   const compareStr = /[\u0617-\u061A\u064B-\u0652\s]/ig
   return str.replaceAll(compareStr, '')
 }
+
+export function containsRoot(word: string, root: string): boolean {
+  // Check if word contains all letters from root (for tri-literal root search)
+  if (!root || !word) return false
+
+  const cleanWord = cleanupHarakat(word)
+  const cleanRoot = cleanupHarakat(root)
+
+  // Check if all root letters are present in the word
+  for (const letter of cleanRoot) {
+    if (!cleanWord.includes(letter)) {
+      return false
+    }
+  }
+  return true
+}
