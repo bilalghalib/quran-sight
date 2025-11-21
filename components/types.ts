@@ -47,4 +47,5 @@ export interface Preset {
   roseSettings: RoseSettings
   trochoidSettings: TrochoidSettings
   zoomLevel: number
+  notes?: string
 }

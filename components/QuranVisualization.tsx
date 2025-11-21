@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { SpiralType, RoseSettings, TrochoidSettings, AnimationSettings, Preset } from './types'
 import { getAbjadValue, getColorByAbjadValue, cleanupHarakat, containsRoot } from './utils'
 import Controls from './Controls'
@@ -9,6 +9,8 @@ import styles from './QuranVisualization.module.css'
 export default function QuranVisualization() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [quranText, setQuranText] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 800 })
   const [spiralType, setSpiralType] = useState<SpiralType>('goldenMean')
   const [fontSize, setFontSize] = useState(1.5)
   const [spiralDensity, setSpiralDensity] = useState(52.6)
@@ -18,6 +20,8 @@ export default function QuranVisualization() {
   const [currentHighlightWord, setCurrentHighlightWord] = useState('')
   const [currentRootSearch, setCurrentRootSearch] = useState('')
   const [zoomLevel, setZoomLevel] = useState(1)
+  const [shareNotes, setShareNotes] = useState('')
+  const [shareUrl, setShareUrl] = useState('')
   const fontSizeAnimationRef = useRef<NodeJS.Timeout | null>(null)
   const spiralDensityAnimationRef = useRef<NodeJS.Timeout | null>(null)
   const renderRequestRef = useRef<number | null>(null)
@@ -62,6 +66,35 @@ export default function QuranVisualization() {
     const stored = localStorage.getItem('quran-sight-presets')
     if (stored) {
       setSavedPresets(JSON.parse(stored))
+    }
+  }, [])
+
+  // Handle canvas resize
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const size = Math.min(window.innerWidth - 400, window.innerHeight - 100, 1200)
+      setCanvasSize({ width: size, height: size })
+    }
+
+    updateCanvasSize()
+    window.addEventListener('resize', updateCanvasSize)
+    return () => window.removeEventListener('resize', updateCanvasSize)
+  }, [])
+
+  // Load state from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const stateParam = params.get('state')
+    if (stateParam) {
+      try {
+        const decoded = JSON.parse(atob(stateParam))
+        loadPreset(decoded)
+        if (decoded.notes) {
+          setShareNotes(decoded.notes)
+        }
+      } catch (e) {
+        console.error('Failed to load state from URL:', e)
+      }
     }
   }, [])
 
@@ -132,7 +165,7 @@ export default function QuranVisualization() {
     setHistory(newHistory)
   }
 
-  function undo() {
+  const undo = useCallback(() => {
     if (historyIndex > 0) {
       isApplyingHistory.current = true
       const prevState = history[historyIndex - 1]
@@ -140,9 +173,9 @@ export default function QuranVisualization() {
       setHistoryIndex(historyIndex - 1)
       setTimeout(() => { isApplyingHistory.current = false }, 100)
     }
-  }
+  }, [historyIndex, history])
 
-  function redo() {
+  const redo = useCallback(() => {
     if (historyIndex < history.length - 1) {
       isApplyingHistory.current = true
       const nextState = history[historyIndex + 1]
@@ -150,7 +183,7 @@ export default function QuranVisualization() {
       setHistoryIndex(historyIndex + 1)
       setTimeout(() => { isApplyingHistory.current = false }, 100)
     }
-  }
+  }, [historyIndex, history])
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -166,7 +199,7 @@ export default function QuranVisualization() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [historyIndex, history])
+  }, [undo, redo])
 
   // Track parameter changes for history (debounced)
   useEffect(() => {
@@ -181,15 +214,18 @@ export default function QuranVisualization() {
 
   // Load Quran text
   useEffect(() => {
+    setIsLoading(true)
     fetch('/quran.txt')
       .then(response => response.text())
       .then(text => {
         const quranLines = text.split('\n').slice(0, 6236)
         const fullText = quranLines.join('\n')
         setQuranText(fullText) // Full Quran - all 6236 verses!
+        setIsLoading(false)
       })
       .catch(error => {
         console.error('Error loading Quranic text:', error)
+        setIsLoading(false)
       })
   }, [])
 
@@ -364,6 +400,33 @@ export default function QuranVisualization() {
     setZoomLevel(prev => prev / 1.1)
   }
 
+  function generateShareUrl() {
+    const state: Preset = {
+      name: 'Shared View',
+      spiralType,
+      fontSize,
+      spiralDensity,
+      abjadColorEnabled,
+      abjadSizeEnabled,
+      abjadWordTotalEnabled,
+      roseSettings,
+      trochoidSettings,
+      zoomLevel,
+      notes: shareNotes,
+    }
+    const encoded = btoa(JSON.stringify(state))
+    const url = `${window.location.origin}${window.location.pathname}?state=${encoded}`
+    setShareUrl(url)
+    return url
+  }
+
+  function copyShareUrl() {
+    const url = generateShareUrl()
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Share link copied to clipboard!')
+    })
+  }
+
   function saveSVG() {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -449,12 +512,43 @@ export default function QuranVisualization() {
 
   return (
     <div className={styles.container}>
+      {shareNotes && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          maxWidth: '600px',
+          background: 'rgba(255, 255, 255, 0.95)',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          zIndex: 10,
+          fontSize: '0.9em',
+          border: '2px solid #4CAF50'
+        }}>
+          <strong>📝 Shared Note:</strong> {shareNotes}
+        </div>
+      )}
+      {isLoading && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '1.2em',
+          color: '#666'
+        }}>
+          Loading Quran text...
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         id="canvas"
-        width={600}
-        height={600}
+        width={canvasSize.width}
+        height={canvasSize.height}
         className={styles.canvas}
+        style={{ opacity: isLoading ? 0.3 : 1 }}
       />
       <Controls
         spiralType={spiralType}
@@ -489,6 +583,10 @@ export default function QuranVisualization() {
         onSavePreset={savePreset}
         onLoadPreset={loadPreset}
         onDeletePreset={deletePreset}
+        shareNotes={shareNotes}
+        setShareNotes={setShareNotes}
+        shareUrl={shareUrl}
+        onCopyShareUrl={copyShareUrl}
       />
     </div>
   )

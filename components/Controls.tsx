@@ -37,6 +37,10 @@ interface ControlsProps {
   onSavePreset: (name: string) => void
   onLoadPreset: (preset: Preset) => void
   onDeletePreset: (index: number) => void
+  shareNotes: string
+  setShareNotes: (notes: string) => void
+  shareUrl: string
+  onCopyShareUrl: () => void
 }
 
 const Controls = memo(function Controls({
@@ -72,6 +76,10 @@ const Controls = memo(function Controls({
   onSavePreset,
   onLoadPreset,
   onDeletePreset,
+  shareNotes,
+  setShareNotes,
+  shareUrl,
+  onCopyShareUrl,
 }: ControlsProps) {
   const [openDrawers, setOpenDrawers] = useState<Set<string>>(new Set(['spiral']))
   const [newPresetName, setNewPresetName] = useState('')
@@ -214,7 +222,7 @@ const Controls = memo(function Controls({
               type="range"
               id="spiralDensity"
               min="1"
-              max="20"
+              max="200"
               step="0.5"
               value={spiralDensity}
               onChange={(e) => setSpiralDensity(parseFloat(e.target.value))}
@@ -223,7 +231,7 @@ const Controls = memo(function Controls({
               type="text"
               value={spiralDensity.toFixed(1)}
               onChange={(e) => setSpiralDensity(parseFloat(e.target.value) || 52.6)}
-              size={2}
+              size={4}
             />
           </div>
         )}
@@ -554,14 +562,58 @@ const Controls = memo(function Controls({
         )}
       </div>
 
+      {/* Share */}
+      <div className={styles.drawer}>
+        <h3 onClick={() => toggleDrawer('share')}>Share This View</h3>
+        {openDrawers.has('share') && (
+          <div className={styles.drawerContent}>
+            <label htmlFor="shareNotes">Add a note (optional):</label>
+            <textarea
+              id="shareNotes"
+              value={shareNotes}
+              onChange={(e) => setShareNotes(e.target.value)}
+              placeholder="Describe what's interesting about this visualization..."
+              rows={3}
+              style={{ width: '100%', marginBottom: '10px', fontFamily: 'inherit' }}
+            />
+
+            <button onClick={onCopyShareUrl} style={{ width: '100%', marginBottom: '10px' }}>
+              📋 Copy Share Link
+            </button>
+
+            {shareUrl && (
+              <div style={{
+                fontSize: '0.85em',
+                padding: '8px',
+                background: '#f0f0f0',
+                borderRadius: '4px',
+                wordBreak: 'break-all',
+                marginTop: '5px'
+              }}>
+                <strong>Link:</strong><br/>
+                {shareUrl}
+              </div>
+            )}
+
+            <p style={{ fontSize: '0.85em', marginTop: '10px', opacity: 0.7 }}>
+              Share this link with others to show them your exact visualization, including all settings and your note.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Save Settings */}
       <div className={styles.drawer}>
-        <h3 onClick={() => toggleDrawer('save')}>Save Settings</h3>
+        <h3 onClick={() => toggleDrawer('save')}>Export & Zoom</h3>
         {openDrawers.has('save') && (
           <div className={styles.drawerContent}>
             <button onClick={onSaveSVG}>Save as SVG</button>
             <button onClick={onZoomIn}>Zoom In</button>
             <button onClick={onZoomOut}>Zoom Out</button>
+
+            <p style={{ fontSize: '0.85em', marginTop: '10px', opacity: 0.7 }}>
+              Keyboard shortcuts: Ctrl+Z (undo) • Ctrl+Shift+Z (redo)
+            </p>
           </div>
         )}
       </div>
