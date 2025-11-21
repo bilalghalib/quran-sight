@@ -15,13 +15,12 @@ export default function QuranVisualization() {
   const [abjadColorEnabled, setAbjadColorEnabled] = useState(false)
   const [abjadSizeEnabled, setAbjadSizeEnabled] = useState(false)
   const [abjadWordTotalEnabled, setAbjadWordTotalEnabled] = useState(false)
-  const [highlightWord, setHighlightWord] = useState('الله')
   const [currentHighlightWord, setCurrentHighlightWord] = useState('')
-  const [rootSearch, setRootSearch] = useState('')
   const [currentRootSearch, setCurrentRootSearch] = useState('')
   const [zoomLevel, setZoomLevel] = useState(1)
   const fontSizeAnimationRef = useRef<NodeJS.Timeout | null>(null)
   const spiralDensityAnimationRef = useRef<NodeJS.Timeout | null>(null)
+  const renderRequestRef = useRef<number | null>(null)
 
   const [roseSettings, setRoseSettings] = useState<RoseSettings>({
     minimumRadius: 50,
@@ -169,11 +168,15 @@ export default function QuranVisualization() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [historyIndex, history])
 
-  // Track parameter changes for history
+  // Track parameter changes for history (debounced)
   useEffect(() => {
-    if (quranText) { // Only start tracking after text is loaded
+    if (!quranText) return // Only start tracking after text is loaded
+
+    const timeoutId = setTimeout(() => {
       saveToHistory()
-    }
+    }, 500) // Debounce by 500ms
+
+    return () => clearTimeout(timeoutId)
   }, [spiralType, fontSize, spiralDensity, abjadColorEnabled, abjadSizeEnabled, abjadWordTotalEnabled, zoomLevel, roseSettings, trochoidSettings])
 
   // Load Quran text
@@ -190,10 +193,25 @@ export default function QuranVisualization() {
       })
   }, [])
 
-  // Draw visualization whenever settings change
+  // Draw visualization whenever settings change (with requestAnimationFrame)
   useEffect(() => {
-    if (quranText) {
+    if (!quranText) return
+
+    // Cancel any pending render request
+    if (renderRequestRef.current !== null) {
+      cancelAnimationFrame(renderRequestRef.current)
+    }
+
+    // Schedule new render
+    renderRequestRef.current = requestAnimationFrame(() => {
       drawVisualization()
+      renderRequestRef.current = null
+    })
+
+    return () => {
+      if (renderRequestRef.current !== null) {
+        cancelAnimationFrame(renderRequestRef.current)
+      }
     }
   }, [
     quranText,
@@ -325,12 +343,12 @@ export default function QuranVisualization() {
     ctx.restore()
   }
 
-  function searchAndHighlight() {
-    setCurrentHighlightWord(cleanupHarakat(highlightWord))
+  function searchAndHighlight(word: string) {
+    setCurrentHighlightWord(cleanupHarakat(word))
   }
 
-  function searchRoot() {
-    setCurrentRootSearch(rootSearch)
+  function searchRoot(root: string) {
+    setCurrentRootSearch(root)
   }
 
   function clearSearches() {
@@ -451,10 +469,6 @@ export default function QuranVisualization() {
         setAbjadSizeEnabled={setAbjadSizeEnabled}
         abjadWordTotalEnabled={abjadWordTotalEnabled}
         setAbjadWordTotalEnabled={setAbjadWordTotalEnabled}
-        highlightWord={highlightWord}
-        setHighlightWord={setHighlightWord}
-        rootSearch={rootSearch}
-        setRootSearch={setRootSearch}
         onSearch={searchAndHighlight}
         onSearchRoot={searchRoot}
         onClearSearches={clearSearches}

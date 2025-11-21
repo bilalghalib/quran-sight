@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { SpiralType, RoseSettings, TrochoidSettings, AnimationSettings, Preset } from './types'
 import styles from './Controls.module.css'
 
@@ -17,12 +17,8 @@ interface ControlsProps {
   setAbjadSizeEnabled: (enabled: boolean) => void
   abjadWordTotalEnabled: boolean
   setAbjadWordTotalEnabled: (enabled: boolean) => void
-  highlightWord: string
-  setHighlightWord: (word: string) => void
-  rootSearch: string
-  setRootSearch: (root: string) => void
-  onSearch: () => void
-  onSearchRoot: () => void
+  onSearch: (word: string) => void
+  onSearchRoot: (root: string) => void
   onClearSearches: () => void
   onZoomIn: () => void
   onZoomOut: () => void
@@ -43,7 +39,7 @@ interface ControlsProps {
   onDeletePreset: (index: number) => void
 }
 
-export default function Controls({
+const Controls = memo(function Controls({
   spiralType,
   setSpiralType,
   fontSize,
@@ -56,10 +52,6 @@ export default function Controls({
   setAbjadSizeEnabled,
   abjadWordTotalEnabled,
   setAbjadWordTotalEnabled,
-  highlightWord,
-  setHighlightWord,
-  rootSearch,
-  setRootSearch,
   onSearch,
   onSearchRoot,
   onClearSearches,
@@ -83,6 +75,8 @@ export default function Controls({
 }: ControlsProps) {
   const [openDrawers, setOpenDrawers] = useState<Set<string>>(new Set(['spiral']))
   const [newPresetName, setNewPresetName] = useState('')
+  const [localHighlightWord, setLocalHighlightWord] = useState('الله')
+  const [localRootSearch, setLocalRootSearch] = useState('')
 
   const toggleDrawer = (drawer: string) => {
     setOpenDrawers(prev => {
@@ -467,22 +461,32 @@ export default function Controls({
             <input
               type="text"
               id="highlightWord"
-              value={highlightWord}
-              onChange={(e) => setHighlightWord(e.target.value)}
+              value={localHighlightWord}
+              onChange={(e) => setLocalHighlightWord(e.target.value)}
               placeholder="الله"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  onSearch(localHighlightWord)
+                }
+              }}
             />
-            <button onClick={onSearch}>Search</button>
+            <button onClick={() => onSearch(localHighlightWord)}>Search</button>
 
             <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #ccc' }}>
               <label htmlFor="rootSearch">Root Letters (blue):</label>
               <input
                 type="text"
                 id="rootSearch"
-                value={rootSearch}
-                onChange={(e) => setRootSearch(e.target.value)}
+                value={localRootSearch}
+                onChange={(e) => setLocalRootSearch(e.target.value)}
                 placeholder="كتب"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onSearchRoot(localRootSearch)
+                  }
+                }}
               />
-              <button onClick={onSearchRoot}>Find Root</button>
+              <button onClick={() => onSearchRoot(localRootSearch)}>Find Root</button>
             </div>
 
             <button
@@ -563,4 +567,6 @@ export default function Controls({
       </div>
     </div>
   )
-}
+})
+
+export default Controls
